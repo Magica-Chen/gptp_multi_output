@@ -1,5 +1,5 @@
 # gptp_multi_output
-multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR)
+This package is used to implement multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR). NOTE: This code is proof-of-concept, not optimized for speed.
 
 This package is based on GPML Matlab Code http://www.gaussianprocess.org/gpml/code/matlab/doc/
 
