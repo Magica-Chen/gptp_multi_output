@@ -21,6 +21,9 @@ MultiGamma.m and vec2mat_diag.m are two small functions, which are used in the m
 2017/12/04
 
 Add gptp_sample.m file
+This file is to generate a sample from GP or TP with specificed row and column covariance and zero mean function.
+
+Add mv_gptp_sample.m file
 This file is to generate a sample from MV-GP or MV-TP with specificed row and column covariance and zero mean function.
 
 Reference: 
