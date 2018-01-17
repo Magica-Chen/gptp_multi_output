@@ -52,7 +52,7 @@ if nargin ==2  % just compute the multivariate gamma function
         lambda = reshape(lambda,1,prod(s));
         lambda = bsxfun(@plus,repmat(lambda,n,1),(1-(1:n)')/2);
         
-        GammaY = pi^(n*(n-1)/4)*prod(gammaln(lambda),1);
+        GammaY = pi^(n*(n-1)/4)*prod(gamma(lambda),1);
         GammaY = reshape(GammaY,s);
         varargout = {GammaY};
     end
