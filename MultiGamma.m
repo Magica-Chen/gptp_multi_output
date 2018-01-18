@@ -33,7 +33,7 @@ function [varargout] = MultiGamma(lambda,n,option)
 if nargin < 2 || nargin >3
     disp('Usage: [GammaY       ] = MultiGamma(lambda,n);')
     disp('   or: [LogGammaY    ] = MultiGamma(lambda,n,''Log'');')
-    disp('   or: [DerLogGammaY ] = MultiGamma(lambda,n,''LogDer'');')
+    disp('   or: [DerLogGammaY ] = MultiGamma(lambda,n,''DerLog'');')
     disp('   or: [GammaY,LogGammaY,DerLogGammaY] = MultiGamma(lambda,n,''All'');')
     return
 end
