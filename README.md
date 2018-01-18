@@ -28,7 +28,7 @@ This file is to generate a sample from MV-GP or MV-TP with specificed row and co
 
 Reference: 
 
-[1] Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." arXiv preprint arXiv:1605.07906 (2016).
+[1] Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." Neurocomputing 275 (2018): 1702-1710.
 
 [2] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student $-t $ Process Regression for Multi-output Prediction." arXiv preprint arXiv:1703.04455 (2017).
 
