@@ -13,7 +13,7 @@ function [varargout] = MultiGamma(lambda,n,option)
 % Usage:
 %     disp('Usage: [GammaY       ] = MultiGamma(lambda,n);')
 %     disp('   or: [LogGammaY    ] = MultiGamma(lambda,n,''Log'');')
-%     disp('   or: [DerLogGammaY ] = MultiGamma(lambda,n,''LogDer'');')
+%     disp('   or: [DerLogGammaY ] = MultiGamma(lambda,n,''DerLog'');')
 %     disp('   or: [GammaY,LogGammaY,DerLogGammaY] = MultiGamma(lambda,n,''All'');')
 % Input:
 %   lambda: the parameter of Gamma function Re(lambda)>1/2*(n-1)
@@ -28,6 +28,7 @@ function [varargout] = MultiGamma(lambda,n,option)
 %   definition of multivarivate gamma function
 %
 % Copyright: Maigca Chen, 2016/05/15
+% ?         Last modified 2018/01/19
 % Email: sxtpy2010@gmail.com            
 
 if nargin < 2 || nargin >3

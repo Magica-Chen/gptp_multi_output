@@ -1,6 +1,6 @@
 function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
 % GPTP_GENERAL -- Solve GP/TP regression for both single output and
-% multiple output problem.
+% multiple a output problem.
 %
 % Syntax:
 %   [...] = gptp_general(xtr,ytr,xte,cov,option)
@@ -114,7 +114,11 @@ end
 
 
 % opts = optimset('GradObj','on','display','off');
-optim_new = optimset('GradObj','on','display','off','MaxIter',500);
+% Matlab version is < 2017
+% optim_new = optimset('GradObj','on','display','off','MaxIter',500);
+% Matlab version >=2017
+optim_new = optimset('GradObj','On','Algorithm','trust-region','display',...
+    'off','MaxIter',500);
 % opts_new = optimset('GradObj','on','display','off','MaxIter',1000);
 
 %% Default function includes both GP and TP (or MV-GP and MV-TP)
@@ -216,8 +220,9 @@ end
             para_init, n_parameter,opts_new)
         %% Global part
         % Optimization option
-        opts = optimset('GradObj','on','display','off');
         % opts = optimset('GradObj','on','display','off');
+        opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
+        
         
         nlml_gp= Inf;
         numinit = 10; sn = 0.1; % sn is the noise level
@@ -289,8 +294,9 @@ end
        %% Global part
         
         % Optimization option
-        opts = optimset('GradObj','on','display','off');
         % opts = optimset('GradObj','on','display','off');
+        opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
+        
         
         nlml_tp= Inf;
         numinit = 10; sn = 0.1; % sn is the noise level
@@ -362,7 +368,8 @@ end
     function [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, ...
             n_input,d_input,d_target,k,dk,para_init,n_parameter,opts_new)        
         
-        opts = optimset('GradObj','on','display','off');
+        % opts = optimset('GradObj','on','display','off');
+        opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
         
         nlml_gp = Inf; nlml_tp= Inf;
         numinit = 10; sn = 0.1; % sn is the noise level
