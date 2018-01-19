@@ -17,6 +17,13 @@ Notice: if the covariance function is changed, do not forget to replace SE_init.
 
 MultiGamma.m and vec2mat_diag.m are two small functions, which are used in the mvgp_solve_gpml.m and mvtp_solve_gpml.m.
 
+%-------------------
+2018/01/19
+
+File added: SimulatedExample.m
+
+Add a simple example for multi-output prediction (MV-GP and MV-TP) compared with independent prediction using GP and TP
+
 %--------------------
 2017/12/04
 
