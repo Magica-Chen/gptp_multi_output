@@ -114,11 +114,12 @@ end
 
 
 % opts = optimset('GradObj','on','display','off');
-% Matlab version is < 2017
+%-------------------------Matlab version is < 2017-------------------------
 % optim_new = optimset('GradObj','on','display','off','MaxIter',500);
-% Matlab version >=2017
+%-------------------------Matlab version >=2017----------------------------
 optim_new = optimset('GradObj','On','Algorithm','trust-region','display',...
     'off','MaxIter',500);
+
 % opts_new = optimset('GradObj','on','display','off','MaxIter',1000);
 
 %% Default function includes both GP and TP (or MV-GP and MV-TP)

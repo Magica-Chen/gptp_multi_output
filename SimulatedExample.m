@@ -105,8 +105,8 @@ figure(1);
 bar(error_measure(:,1:4),'grouped');
 legend('MV-GP','MV-TP','GP','TP','Location','northwest')
 set(gca,'XTick',1:1:2)
-set(gca,'XtickLabel',{"y_1","y_2"})
-title("RMSE")
+set(gca,'XtickLabel',{'y_1','y_2'})
+title('RMSE')
 
 %%
 % multi

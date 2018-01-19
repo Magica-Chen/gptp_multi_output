@@ -24,6 +24,8 @@ File added: SimulatedExample.m
 
 Add a simple example for multi-output prediction (MV-GP and MV-TP) compared with independent prediction using GP and TP
 
+Update optimset setting for Matlab 2017 and later in gptp_general.m 
+
 %--------------------
 2017/12/04
 
