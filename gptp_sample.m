@@ -31,7 +31,7 @@ function [varargout] = gptp_sample(cov_x,x,hyp,nu)
 %   Output:
 %     gp_sample and tp_sample
 %
-%   Copyright Zexun Chen, 2016/05/29
+%   Copyright Zexun Chen, 2018/04/08
 %      email: zexun_chen@outlook.com
 
 if nargin < 3 || nargin >4
@@ -42,8 +42,7 @@ if nargin < 3 || nargin >4
 end
 
 n = size(x,1);
-r = bsxfun(@minus,x(:),x(:)');
-C = feval(cov_x,r,hyp);
+C = feval(cov_x, hyp, x);
 [u,s,~] = svd(C);  %SVD decomposition, C=usv'
 
 if nargin == 3
