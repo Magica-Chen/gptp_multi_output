@@ -51,7 +51,7 @@ function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
 %   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,ytr,xte,cov,
 %                                                    para_init,"TPVS");    
 %   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,indTPpredictor] = 
-%           gptp_general(xtr,ytr,xte,cov,para_init,"ALL");
+%           gptp_general(xtr,ytr,xte,cov,para_init,"All");
 %
 % Copyright: Magica Chen 2017/05/19
 %     email: sxtpy2010@gmail.com
@@ -75,7 +75,7 @@ if nargin < 3 || nargin > 6
     disp(['   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,',...
         'ytr,xte,cov,para_init,"TPVS");'])    
     disp(['   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,',...
-        'indTPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"ALL");'])
+        'indTPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"All");'])
     return
 end
 
