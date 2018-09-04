@@ -1,17 +1,24 @@
 # gptp_multi_output
-This package is used to implement multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR). NOTE: This code is proof-of-concept, not optimized for speed.
+This toolkit is used to implement multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR). 
 
-This package is based on GPML Matlab Code http://www.gaussianprocess.org/gpml/code/matlab/doc/
-
+## Code structure
 The main function is gptp_general.m.
 There are four useful sub-functions, gp_solve_gpml.m, tp_solve_gpml.m, mvgp_solve_gpml.m, mvtp_solve_gpml.m
 These four functions are used to solve GPR, TPR, MV-GPR and MV-TPR, respectively.
+
+## Note
+This tookkit is based on GPML Matlab Code http://www.gaussianprocess.org/gpml/code/matlab/doc/, version 3.6.
+
+covSEiso and covSEard are used as default covariance function. More covariance functions can be selected in the GPML Code toolbox. 
+
+
+
 
 covSEiso.m, covSEard.m and sq_dist.m are collected from GPML Matlab Code. 
 
 nu_init.m, Omega_init.m, SE_init.m are used to initialise parameter nu (in TPR and MV-TPR), Omega(in MV-GPR and MV-TPR), and hyperparameters in the specific kernel. Actually, the initial hyperparameters play an important role in the performance of regression. If possible, you can write your own initialisation function.  
 
-covSEiso and covSEard are used as default covariance function. More covariance functions can be selected in the GPML Code toolbox. 
+
 
 Notice: if the covariance function is changed, do not forget to replace SE_init.m by the corresponding kernel initialation function.
 
@@ -35,7 +42,10 @@ This file is to generate a sample from GP or TP with specificed row and column c
 Add mv_gptp_sample.m file
 This file is to generate a sample from MV-GP or MV-TP with specificed row and column covariance and zero mean function.
 
-Reference: 
+## Note
+This code is proof-of-concept, not optimized for speed.
+
+## Reference 
 
 [1] Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." Neurocomputing 275 (2018): 1702-1710.
 
