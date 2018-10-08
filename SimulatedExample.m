@@ -67,6 +67,10 @@ ytr = y(train_series,:);
 yte = [y1 y2];
 
 %% regression/prediction
+% If you input is multi-dimensional, you have to choose covSEard, or any
+% other ard kernels.
+% If you want to obtain better results, please pay attention to the
+% initialisation of hyperparameters, e,g, SE_init.m and nu_init(if you use TP)
 kernel = @covSEiso; init_func = @SE_init;
 
 [mGPpredictor, mTPpredictor, GPpredictor, TPpredictor] = gptp_general(...
