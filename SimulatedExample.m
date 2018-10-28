@@ -1,7 +1,7 @@
 % Example code for multi-output prediction using some simulated data (It is
 % not the code for the following paper, there are some sight differences)
 %
-% Copyright: Magica Chen 2018/01/19
+% Copyright: Magica Chen 2018/10/28
 %     email: sxtpy2010@gmail.com
 %
 % Reference :
@@ -13,8 +13,8 @@ clc
 clear
 close all
 %% Global variable
-seeds = 26;  gpORtp = 'TP'; % for TP noise
-% seeds = 56; gpORtp = 'GP'; % for GP noise
+seeds = 19;  gpORtp = 'TP'; % for TP noise
+% seeds = 17; gpORtp = 'GP'; % for GP noise
 
 % Sample points
 N_sample = 100;

@@ -48,12 +48,14 @@ function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
 % % or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"VS");')
 %   or: [indGPpredictor, mvGPpredictor] =gptp_general(xtr,ytr,xte,cov,
 %                                                    para_init,"GPVS");
+%   or: [mvGPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"GPVS");
 %   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,ytr,xte,cov,
-%                                                    para_init,"TPVS");    
-%   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,indTPpredictor] = 
+%                                                    para_init,"TPVS");
+%   or: [mvTPpredictor] =gptp_general(xtr,ytr,xte,cov, para_init,"TPVS");
+%   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,indTPpredictor] =
 %           gptp_general(xtr,ytr,xte,cov,para_init,"All");
 %
-% Copyright: Magica Chen 2017/05/19
+% Copyright: Magica Chen 2018/10/28
 %     email: sxtpy2010@gmail.com
 %
 % Reference :
@@ -69,11 +71,11 @@ if nargin < 3 || nargin > 6
     disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov);')
     disp(['   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,',...
         'cov,para_init);'])
-%    disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"VS");')
+    %    disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"VS");')
     disp(['   or: [indGPpredictor, mvGPpredictor] =gptp_general(xtr,',...
         'ytr,xte,cov,para_init,"GPVS");'])
     disp(['   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,',...
-        'ytr,xte,cov,para_init,"TPVS");'])    
+        'ytr,xte,cov,para_init,"TPVS");'])
     disp(['   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,',...
         'indTPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"All");'])
     return
@@ -118,7 +120,7 @@ end
 % optim_new = optimset('GradObj','on','display','off','MaxIter',500);
 %-------------------------Matlab version >=2017----------------------------
 optim_new = optimset('GradObj','On','Algorithm','trust-region','display',...
-    'off','MaxIter',500);
+    'off','MaxIter',250);
 
 % opts_new = optimset('GradObj','on','display','off','MaxIter',1000);
 
@@ -144,27 +146,29 @@ if nargin == 6
                 k,dk,para_init, n_parameter,optim_new);
             varargout = {TPpredictor};
             
-%         case 'VS'
-%             % Model comparison, if the dimension of output is one, this is a
-%             % comparison of GPR and TPR, otherwise this is a comparison of
-%             % MV-GPR and MV-TPR
-%             [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,n_input,...
-%                 d_input,d_target,k,dk,para_init,nu_init,n_parameter,optim_new);
-%             varargout = {GPpredictor, TPpredictor};
-
+            %         case 'VS'
+            %             % Model comparison, if the dimension of output is one, this is a
+            %             % comparison of GPR and TPR, otherwise this is a comparison of
+            %             % MV-GPR and MV-TPR
+            %             [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,n_input,...
+            %                 d_input,d_target,k,dk,para_init,nu_init,n_parameter,optim_new);
+            %             varargout = {GPpredictor, TPpredictor};
+            
         case 'GPVS'
             if d_target > 1
                 mvGPpredictor = gp_part(xtr, ytr, xte, d_input,d_target,...
                     k,dk,para_init, n_parameter,optim_new);
-                
-                indGPpredictor = cell(1,d_target); % allocate space
-                
-                for i = 1:d_target
-                    indGPpredictor{i} = gp_part(xtr, ytr(:,i),xte,...
-                        d_input,1,k,dk,para_init, n_parameter,optim_new);
+                if nargout == 1
+                    varargout = {mvGPpredictor};
+                else
+                    indGPpredictor = cell(1,d_target); % allocate space
+                    
+                    for i = 1:d_target
+                        indGPpredictor{i} = gp_part(xtr, ytr(:,i),xte,...
+                            d_input,1,k,dk,para_init, n_parameter,optim_new);
+                    end
+                    varargout = {indGPpredictor, mvGPpredictor};
                 end
-                
-                varargout = {indGPpredictor, mvGPpredictor};
             else
                 error('The dimension of output must be more than 2')
             end
@@ -173,16 +177,18 @@ if nargin == 6
             if d_target > 1
                 mvTPpredictor = tp_part(xtr, ytr, xte,n_input,d_input,...
                     d_target,k,dk,para_init,n_parameter,optim_new);
-        
-                indTPpredictor = cell(1,d_target); % allocate space
-                
-                for i = 1:d_target
-                    indTPpredictor{i} = tp_part(xtr,ytr(:,i),xte,...
-                        n_input,d_input,1,k,dk,para_init,n_parameter,...
-                        optim_new);
+                if nargout == 1
+                    varargout = {mvTPpredictor};
+                else
+                    indTPpredictor = cell(1,d_target); % allocate space
+                    
+                    for i = 1:d_target
+                        indTPpredictor{i} = tp_part(xtr,ytr(:,i),xte,...
+                            n_input,d_input,1,k,dk,para_init,n_parameter,...
+                            optim_new);
+                    end
+                    varargout = {indTPpredictor, mvTPpredictor};
                 end
-                
-                varargout = {indTPpredictor, mvTPpredictor};
             else
                 error('The dimension of output must be more than 2')
             end
@@ -196,17 +202,22 @@ if nargin == 6
                 [mvGPpredictor, mvTPpredictor] = gptp_part(xtr, ytr, xte, ...
                     n_input,d_input,d_target,k,dk,para_init,n_parameter,...
                     optim_new);
-                
-                indGPpredictor = cell(1,d_target); % allocate space
-                indTPpredictor = cell(1,d_target);
-                
-                for i = 1:d_target
-                    [indGPpredictor{i}, indTPpredictor{i}] = gptp_part(...
-                        xtr,ytr(:,i),xte,n_input,d_input,1,k,dk,...
-                        para_init,n_parameter,optim_new);
+                if nargout == 2
+                    varargout = {mvGPpredictor, mvTPpredictor};
+                else
+                    
+                    indGPpredictor = cell(1,d_target); % allocate space
+                    indTPpredictor = cell(1,d_target);
+                    
+                    for i = 1:d_target
+                        [indGPpredictor{i}, indTPpredictor{i}] = gptp_part(...
+                            xtr,ytr(:,i),xte,n_input,d_input,1,k,dk,...
+                            para_init,n_parameter,optim_new);
+                    end
+                    
+                    varargout = {mvGPpredictor, mvTPpredictor,indGPpredictor,...
+                        indTPpredictor};
                 end
-                varargout = {mvGPpredictor, mvTPpredictor,indGPpredictor,...
-                    indTPpredictor};
             else
                 [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, ...
                     n_input,d_input,d_target,k,dk,para_init,n_parameter,...
@@ -216,7 +227,7 @@ if nargin == 6
             
     end
 end
-%% implement GPR/MV-GPR only 
+%% implement GPR/MV-GPR only
     function GPpredictor = gp_part(xtr, ytr, xte, d_input,d_target,k,dk,...
             para_init, n_parameter,opts_new)
         %% Global part
@@ -278,6 +289,7 @@ end
         GPpredictor.ub = ub_gp;
         GPpredictor.nlml = nlml_gp_final;
         
+        GPpredictor.hyp.sn = exp(w_gp_final(1));
         GPpredictor.hyp.ell = exp(w_gp_final(2:n_parameter));
         GPpredictor.hyp.sf = exp(w_gp_final(n_parameter+1));
         
@@ -292,7 +304,7 @@ end
 %% implement TPR/MV-TPR only
     function TPpredictor = tp_part(xtr, ytr, xte,n_input,d_input,d_target,...
             k,dk,para_init,n_parameter,opts_new)
-       %% Global part
+        %% Global part
         
         % Optimization option
         % opts = optimset('GradObj','on','display','off');
@@ -301,9 +313,9 @@ end
         
         nlml_tp= Inf;
         numinit = 10; sn = 0.1; % sn is the noise level
-       %%
+        %%
         if d_target ==1
-            funcTP = @tp_solve_gpml;       
+            funcTP = @tp_solve_gpml;
             for j=1:numinit
                 kernel_tp = para_init(d_input);
                 nu = nu_init(n_input);
@@ -352,7 +364,9 @@ end
         TPpredictor.lb = lb_tp;
         TPpredictor.ub = ub_tp;
         TPpredictor.nlml = nlml_tp_final;
+        
         TPpredictor.hyp.nu = exp(w_tp_final(1));
+        TPpredictor.hyp.sn = exp(w_tp_final(2));
         TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
         TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
         
@@ -367,7 +381,7 @@ end
     end
 %% implement both GPR/MV-GPR and TPR/MV-TPR
     function [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, ...
-            n_input,d_input,d_target,k,dk,para_init,n_parameter,opts_new)        
+            n_input,d_input,d_target,k,dk,para_init,n_parameter,opts_new)
         
         % opts = optimset('GradObj','on','display','off');
         opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
@@ -382,11 +396,11 @@ end
                 %% GP part
                 kernel_gp = para_init(d_input);
                 param_gp = log([sn; kernel_gp]');
-
+                
                 % Optimization
                 [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
                     param_gp,opts);
-
+                
                 if (nlml_gp_new < nlml_gp)
                     param_gp_final = param_gp ;
                     nlml_gp = nlml_gp_new;
@@ -460,6 +474,7 @@ end
         GPpredictor.ub = ub_gp;
         GPpredictor.nlml = nlml_gp_final;
         
+        GPpredictor.hyp.sn = exp(w_gp_final(1));
         GPpredictor.hyp.ell = exp(w_gp_final(2:n_parameter));
         GPpredictor.hyp.sf = exp(w_gp_final(n_parameter+1));
         
@@ -482,7 +497,9 @@ end
         TPpredictor.lb = lb_tp;
         TPpredictor.ub = ub_tp;
         TPpredictor.nlml = nlml_tp_final;
+        
         TPpredictor.hyp.nu = exp(w_tp_final(1));
+        TPpredictor.hyp.sn = exp(w_tp_final(2));
         TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
         TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
         
