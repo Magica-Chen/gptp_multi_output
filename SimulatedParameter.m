@@ -14,7 +14,7 @@ clear
 close all
 %% Global variable
 seeds = 19; %19;
-rng(seeds)
+rng(seeds) % don't forget this if you want to get the same result for any run of this code
 % Sample points
 N_sample = 100;
 N_repeats = 10;
