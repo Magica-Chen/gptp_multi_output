@@ -13,7 +13,7 @@ clc
 clear
 close all
 %% Global variable
-seeds = 19;  gpORtp = 'TP'; % for TP noise
+% seeds = 19;  gpORtp = 'TP'; % for TP noise
 % seeds = 17; gpORtp = 'GP'; % for GP noise
 
 % Sample points
@@ -31,8 +31,11 @@ nu =3; % Only for t-disribution
 
 %----------------------------------------------------------------
 % Generate noise
-
+seeds = 17;
 rng(seeds)
+% if you would like to achieve the same result for any run of this code
+% please set this random seed
+
 cov_col= @covSEiso;
 noise_level = linspace(0,1,N_sample)';
 
