@@ -13,13 +13,13 @@ clc
 clear
 close all
 %% Global variable
-seeds = 19; %19;
+seeds = 74; %19;
 rng(seeds)
 % Sample points
 N_sample = 100;
-N_repeats = 10;
+N_repeats = 20;
 cov_col= @covSEiso;
-x = linspace(0,1,N_sample)';
+x = linspace(0,5,N_sample)';
 xtr = x;
 xte = x;
 % If you input is multi-dimensional, you have to choose covSEard, or any
@@ -30,8 +30,8 @@ kernel = @covSEiso; init_func = @SE_init;
 %% Example for MV-GPR parameter estimation
 phi11 = 1; phi22 = 1;
 psi12 = 0.8;
-sf = 2; ell = 0.5;
-sn = 0.1; %noise_level
+sf = 2.5; ell = 0.5;
+sn = 1; %noise_level
 nu = 3;
 
 cov_row = [phi11 psi12;psi12 phi22];
@@ -55,7 +55,7 @@ for i = 1: N_repeats
 end
 
 %%
-save("Run10","mGPpredictor", "mTPpredictor", "phi11", ...
+save("Run10_new","mGPpredictor", "mTPpredictor", "phi11", ...
     "phi22", "psi12", "nu", "sf", "ell","sn")
 %% parameter estimation quality
 

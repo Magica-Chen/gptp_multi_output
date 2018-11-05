@@ -237,12 +237,13 @@ end
         
         
         nlml_gp= Inf;
-        numinit = 10; sn = 0.1; % sn is the noise level
+        numinit = 10; % sn = 0.1; % sn is the noise level
         
         if d_target ==1                            % 1 output regression
             funcGP = @gp_solve_gpml;
             for j=1:numinit
                 kernel_gp = para_init(d_input);
+                sn = noise_init(ytr);
                 param_gp = log([sn; kernel_gp]');
                 % Optimization
                 [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
@@ -259,6 +260,7 @@ end
             funcGP = @mvgp_solve_gpml;
             for j=1:numinit                 % multiple output regression
                 kernel_gp = para_init(d_input);
+                sn = noise_init(ytr);
                 %------------------------------------------------------------------
                 [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(cov_target);
                 %------------------------------------------------------------------
@@ -312,12 +314,13 @@ end
         
         
         nlml_tp= Inf;
-        numinit = 10; sn = 0.1; % sn is the noise level
+        numinit = 10; % sn = 0.1; % sn is the noise level
         %%
         if d_target ==1
             funcTP = @tp_solve_gpml;
             for j=1:numinit
                 kernel_tp = para_init(d_input);
+                sn = noise_init(ytr);
                 nu = nu_init(n_input);
                 param_tp = log([nu;sn;kernel_tp]');
                 
@@ -335,6 +338,7 @@ end
             funcTP = @mvtp_solve_gpml;
             for j=1:numinit
                 kernel_tp = para_init(d_input);
+                sn = noise_init(ytr);
                 nu = nu_init(n_input);
                 %------------------------------------------------------------------
                 [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(cov_target);
@@ -387,7 +391,7 @@ end
         opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
         
         nlml_gp = Inf; nlml_tp= Inf;
-        numinit = 10; sn = 0.1; % sn is the noise level
+        numinit = 10; % sn = 0.1; % sn is the noise level
         
         % Select the model solve function based on the dimension of targets
         if d_target ==1                        % single output GP/TP regression
@@ -395,6 +399,7 @@ end
             for j=1:numinit
                 %% GP part
                 kernel_gp = para_init(d_input);
+                sn = noise_init(ytr);
                 param_gp = log([sn; kernel_gp]');
                 
                 % Optimization
@@ -408,6 +413,7 @@ end
                 
                 %% TP part
                 kernel_tp = para_init(d_input);
+                sn = noise_init(ytr);
                 nu = nu_init(n_input);
                 param_tp = log([nu;sn;kernel_tp]');
                 % Optimization
@@ -426,6 +432,7 @@ end
             for j=1:numinit
                 %% MV-GP part
                 kernel_gp = para_init(d_input);
+                sn = noise_init(ytr);
                 %----------------------------------------------------------
                 [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(cov_target);
                 %----------------------------------------------------------
@@ -443,6 +450,7 @@ end
                 
                 %% MV-TP part
                 kernel_tp = para_init(d_input);
+                sn = noise_init(ytr);
                 nu = nu_init(n_input);
                 %------------------------------------------------------------------
                 [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(cov_target);
