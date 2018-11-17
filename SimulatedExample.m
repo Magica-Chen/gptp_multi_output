@@ -13,8 +13,9 @@ clc
 clear
 close all
 %% Global variable
-% seeds = 19;  gpORtp = 'TP'; % for TP noise
-% seeds = 17; gpORtp = 'GP'; % for GP noise
+
+ seeds = 189;  rng(seeds); gpORtp = 'GP'; % for GP noise
+% seeds = 31;  rng(seeds); gpORtp = 'TP'; % for TP noise
 
 % Sample points
 N_sample = 100;
@@ -25,8 +26,8 @@ N_sample = 100;
 train_series = [1:3:floor(0.45*N_sample)  ...
     floor(0.65*N_sample):3:N_sample]; % split the training and test
 
-cov_row = [1 0.25;0.25 1];
-hyp_init = log([1.001,5]);
+cov_row = [1 -0.8;-0.8 1];
+hyp_init = log([1.1,2]);
 nu =3; % Only for t-disribution
 
 %----------------------------------------------------------------
@@ -37,9 +38,9 @@ rng(seeds)
 % please set this random seed
 
 cov_col= @covSEiso;
-noise_level = linspace(0,1,N_sample)';
+x = linspace(-10,10,N_sample)';
 
-[y_noise_gp,y_noise_tp] = mv_gptp_sample(cov_col,cov_row,noise_level,...
+[y_noise_gp,y_noise_tp] = mv_gptp_sample(cov_col,cov_row,x,...
     hyp_init,nu);
 
 % Choose G-noise or T-noise
@@ -50,19 +51,16 @@ switch gpORtp
         y_noise = y_noise_tp;
 end
 %%  Generate samples
-x = linspace(-10,10,N_sample);
+
 
 % y1 = 2.*cos(x).* (x);  %+ 0.08*randn(1,n);
 % y2 = 1.5.*cos(x + 0.9).*(x);    %+ 0.06*randn(1,n);
 
-y1 = 2*cos(x).* (x) ;           y1 = y1';
-y2 = 1.5.*cos(x +pi/5).*(x);      y2 = y2';
+y1 = 2*cos(x).* (x) ;           
+y2 = 1.5.*cos(x +pi/5).*(x);      
 
 xtr = x(train_series);
-xtr = xtr';
-
 xte = x;
-xte = xte';
 
 y = [y1 y2] + y_noise;
 

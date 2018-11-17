@@ -1,4 +1,4 @@
-function [varargout] = gptp_sample(cov_x,x,noise_level,hyp,nu)
+function [varargout] = gptp_sample(cov_x,x,hyp,nu)
 % This function is to generate a sample from GP(0,C) or genearte a sample
 % from TP(nu,0,C), where C is the selected kernel and nu is the degree of
 % freedom.
@@ -25,7 +25,6 @@ function [varargout] = gptp_sample(cov_x,x,noise_level,hyp,nu)
 %   Input:
 %     cov_x: the kernel or covariance function of x
 %     x    : the points which is used to evaluate the cov
-%     noise_level: noise added in the kernel
 %     hyp  : the enough hypers, which is used to evaluate the cov
 %     nu   : the degree of freedom of student t distribution
 %
@@ -35,7 +34,7 @@ function [varargout] = gptp_sample(cov_x,x,noise_level,hyp,nu)
 %   Copyright Magica Chen, 2018/10/28
 %      email: sxtpy2010@gmail.com
 
-if nargin < 4 || nargin >5
+if nargin < 3 || nargin >4
     disp('Usage: [gp_sample] = gptp_sample(cov_x,x,hyp);')
     disp('   or: [tp_sample] = gptp_sample(cov_x,x,hyp,nu);')
     disp('   or: [gp_sample tp_sample] = gptp_sample(cov,x,hyp,nu);')
@@ -44,15 +43,15 @@ end
 
 n = size(x,1);
 C = feval(cov_x, hyp, x);
-[u,s,~] = svd(C + noise_level * ones(size(C)));  %SVD decomposition, C=usv'
+[u,s,~] = svd(C);  %SVD decomposition, C=usv'
 
-if nargin == 4
+if nargin == 3
     gn = randn(n,1);  % Genearate a sample from standard normal distribution
     z_gp = u*sqrt(s)*gn;
     varargout = {z_gp};
 end
 
-if nargin == 5
+if nargin == 4
     tn = trnd(nu,n,1); % Genearate a sample from student t distribution with
                        % degree of freedom is nu.
                        % The mean is 0 and the variance is nu/(nu-2)

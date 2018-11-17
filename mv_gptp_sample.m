@@ -1,4 +1,4 @@
-function [varargout] = mv_gptp_sample(cov_x,cov_y,x, noise_level,hyp,nu)
+function [varargout] = mv_gptp_sample(cov_x,cov_y,x,hyp,nu)
 % This function is to generate a sample from mGP(0,C,B) or genearte a sample
 % from mTP(nu,0,C,B), where C is the selected kernel, B is the covariance
 % of output and nu is the degree of freedom
@@ -25,7 +25,6 @@ function [varargout] = mv_gptp_sample(cov_x,cov_y,x, noise_level,hyp,nu)
 %   Input:
 %     cov_x: the kernel or covariance function of x
 %     cov_y: covariance of outputs
-%     noise_level: noisy kernel
 %     x    : the points which is used to evaluate the cov
 %     hyp  : the enough hypers, which is used to evaluate the cov
 %     nu   : the degree of freedom of student t distribution
@@ -36,7 +35,7 @@ function [varargout] = mv_gptp_sample(cov_x,cov_y,x, noise_level,hyp,nu)
 %   Copyright Magica Chen, 2018/10/28
 %      email: sxtpy2010@gmail.com
 
-if nargin < 4 || nargin >6
+if nargin < 3 || nargin >5
     disp('Usage: [mv_gp_sample] = mv_gptp_sample(cov_x,cov_y,x,hyp);')
     disp('   or: [mv_tp_sample] = mv_gptp_sample(cov_x,cov_y,x,hyp,nu);')
     disp('   or: [mv_gp_sample tp_sample] = mv_gptp_sample(cov,x,hyp,nu);')
@@ -45,15 +44,15 @@ end
 
 n = size(x,1);  %d = size(cov_y,1);
 C = feval(cov_x, hyp, x);B = cov_y;
-[u,s,~] = svd(C + noise_level * ones(size(C)));  %SVD decomposition, BC=usv'
+[u,s,~] = svd(C);  %SVD decomposition, BC=usv'
 
-if nargin == 5
+if nargin == 4
     gn = mvnrnd([0;0],B,n);  % Genearate a sample from multi-normal distribution
     z_gp = u*sqrt(s)*gn;
     varargout = {z_gp};
 end
 
-if nargin == 6
+if nargin == 5
     tn = mvtrnd(B,nu,n); % Genearate a sample from multi-student t distribution with
     z_tp = (nu/(nu-2))^(-0.5).*u*sqrt(s)*tn;
     

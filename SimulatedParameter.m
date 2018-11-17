@@ -13,13 +13,13 @@ clc
 clear
 close all
 %% Global variable
-seeds = 74; %19;
+seeds = 123;
 rng(seeds)
 % Sample points
 N_sample = 100;
 N_repeats = 20;
 cov_col= @covSEiso;
-x = linspace(0,5,N_sample)?;
+x = linspace(0,5,N_sample)';
 xtr = x;
 xte = x;
 % If you input is multi-dimensional, you have to choose covSEard, or any
@@ -31,7 +31,7 @@ kernel = @covSEiso; init_func = @SE_init;
 phi11 = 1; phi22 = 1;
 psi12 = 0.8;
 sf = 2.5; ell = 0.5;
-sn = 1; %noise_level
+noise = 0.01;
 nu = 3;
 
 cov_row = [phi11 psi12;psi12 phi22];
@@ -41,22 +41,27 @@ mGPpredictor = cell(N_repeats,1);
 mTPpredictor = cell(N_repeats,1);
 yte_gp = cell(N_repeats,1);
 yte_tp = cell(N_repeats,1);
+% for i = 1: N_repeats
+%     y_noise_gp = mv_gptp_sample(cov_col,cov_row,x, hyp_init);
+%     % This is parameter estimation example
+%     ytr_gp = y_noise_gp + normrnd(0, noise, size(y_noise_gp));
+%     
+%     mGPpredictor{i} = gptp_general(xtr, ytr_gp, xte, kernel, init_func, "GPVS");
+%     yte_gp{i} = y_noise_gp;
+% end
+
 for i = 1: N_repeats
-    y_noise_gp = mv_gptp_sample(cov_col,cov_row,x, sn, hyp_init);
-    y_noise_tp = mv_gptp_sample(cov_col,cov_row,x, sn, hyp_init, nu);
+    y_noise_tp = mv_gptp_sample(cov_col,cov_row,x, hyp_init, nu);
     % This is parameter estimation example
-    ytr_gp = y_noise_gp;
-    ytr_tp = y_noise_tp;
-    
-    mGPpredictor{i} = gptp_general(xtr, ytr_gp, xte, kernel, init_func,?GPVS?);
-    mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, kernel, init_func,?TPVS?);
-    yte_gp{i} = y_noise_gp;
+    ytr_tp = y_noise_tp + normrnd(0, noise, size(y_noise_tp));
+
+    mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, kernel, init_func, "TPVS");
     yte_tp{i} = y_noise_tp;
 end
 
 %%
-save(?Run10_new?,?mGPpredictor?, ?mTPpredictor?, ?phi11?, ...
-    ?phi22", ?psi12?, ?nu?, ?sf?, ?ell?,?sn?)
+% save("Run10_new", "mGPpredictor", "mTPpredictor", "sn", "nu", "phi11", ...
+%     "phi22", "psi12", "ell", "sf")
 %% parameter estimation quality
 
 pMAE_sn_gp = zeros(N_repeats,1);
@@ -79,17 +84,17 @@ pMAE_nu_tp = zeros(N_repeats,1);
 aMAE_mtp1 = zeros(N_repeats,1);
 aMAE_mtp2 = zeros(N_repeats,1);
 for i = 1: N_repeats
-    pMAE_sn_gp(i) = (mGPpredictor{i}.hyp.sn - sn)/sn;
-    pMAE_sf_gp(i) = (mGPpredictor{i}.hyp.sf - sf)/sf;
-    pMAE_ell_gp(i) = (mGPpredictor{i}.hyp.ell - ell)/ell;
-    pMAE_psi12_gp(i) = (mGPpredictor{i}.hyp.non_diag_Omega - psi12)/psi12;
-    pMAE_phi11_gp(i) = (mGPpredictor{i}.hyp.diag_Omega(1) - phi11)/phi11;
-    pMAE_phi22_gp(i) = (mGPpredictor{i}.hyp.diag_Omega(2) - phi22)/phi22;
-    aMAE_mgp1(i) = mae(mGPpredictor{i}.mean(:,1),yte_gp{i}(:,1));
-    aMAE_mgp2(i) = mae(mGPpredictor{i}.mean(:,2),yte_gp{i}(:,2));
+%     pMAE_sn_gp(i) = (mGPpredictor{i}.hyp.sn - noise)/(noise);
+%     pMAE_sf_gp(i) = (mGPpredictor{i}.hyp.sf - sf)/sf;
+%     pMAE_ell_gp(i) = (mGPpredictor{i}.hyp.ell - ell)/ell;
+%     pMAE_psi12_gp(i) = (mGPpredictor{i}.hyp.non_diag_Omega - psi12)/psi12;
+%     pMAE_phi11_gp(i) = (mGPpredictor{i}.hyp.diag_Omega(1) - phi11)/phi11;
+%     pMAE_phi22_gp(i) = (mGPpredictor{i}.hyp.diag_Omega(2) - phi22)/phi22;
+%     aMAE_mgp1(i) = mae(mGPpredictor{i}.mean(:,1),yte_gp{i}(:,1));
+%     aMAE_mgp2(i) = mae(mGPpredictor{i}.mean(:,2),yte_gp{i}(:,2));
     
     
-    pMAE_sn_tp(i) = (mTPpredictor{i}.hyp.sn - sn)/sn;
+    pMAE_sn_tp(i) = (mTPpredictor{i}.hyp.sn - noise)/(noise);
     pMAE_sf_tp(i) = (mTPpredictor{i}.hyp.sf - sf)/sf;
     pMAE_ell_tp(i) = (mTPpredictor{i}.hyp.ell - ell)/ell;
     pMAE_psi12_tp(i) = (mTPpredictor{i}.hyp.non_diag_Omega - psi12)/psi12;
@@ -103,15 +108,15 @@ for i = 1: N_repeats
 end
 
 
-pMAE_GP = [median(abs(pMAE_sn_gp)), median(abs(pMAE_sf_gp)), ...
-    median(abs(pMAE_ell_gp)),median(abs(pMAE_phi11_gp)), ...
-    median(abs(pMAE_phi22_gp)),median(abs(pMAE_psi12_gp))]
+% pMAE_GP = [median(abs(pMAE_sn_gp)), median(abs(pMAE_sf_gp)), ...
+%     median(abs(pMAE_ell_gp)),median(abs(pMAE_phi11_gp)), ...
+%     median(abs(pMAE_phi22_gp)),median(abs(pMAE_psi12_gp))]
 
-pMAE_TP = [median(abs(pMAE_sn_tp)), median(abs(pMAE_sf_tp)), ...
+pMAE_TP = [ median(abs(pMAE_sn_tp)), median(abs(pMAE_sf_tp)), ...
     median(abs(pMAE_ell_tp)),median(abs(pMAE_phi11_tp)), ...
     median(abs(pMAE_phi22_tp)),median(abs(pMAE_psi12_tp)), ...
     median(abs(pMAE_nu_tp))]
-
-accuracy= [median(aMAE_mgp1), median(aMAE_mtp1);
-    median(aMAE_mgp2), median(aMAE_mtp2)]
+% 
+% accuracy= [median(aMAE_mgp1), median(aMAE_mtp1);
+%     median(aMAE_mgp2), median(aMAE_mtp2)]
 

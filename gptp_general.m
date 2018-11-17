@@ -107,7 +107,7 @@ if nargin ==4
     para_init = @SE_init;
 end
 
-n_parameter = para_init(d_input,1);
+n_parameter = para_init(xtr, ytr, 1);
 dk = cell(n_parameter,1);
 k = @(hyp,x,z) covfunc(hyp,x,z);       % Re-define the form of
 for i = 1:n_parameter
@@ -237,13 +237,12 @@ end
         
         
         nlml_gp= Inf;
-        numinit = 10; % sn = 0.1; % sn is the noise level
+        numinit = 10; sn = 0.1; % sn is the noise level
         
         if d_target ==1                            % 1 output regression
             funcGP = @gp_solve_gpml;
             for j=1:numinit
-                kernel_gp = para_init(d_input);
-                sn = noise_init(ytr);
+                kernel_gp = para_init(xtr, ytr);
                 param_gp = log([sn; kernel_gp]');
                 % Optimization
                 [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
@@ -256,13 +255,11 @@ end
             end
             
         else
-            cov_target = cov(ytr);          % Compute the target covariance
             funcGP = @mvgp_solve_gpml;
             for j=1:numinit                 % multiple output regression
-                kernel_gp = para_init(d_input);
-                sn = noise_init(ytr);
+                kernel_gp = para_init(xtr, ytr);
                 %------------------------------------------------------------------
-                [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(cov_target);
+                [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
                 %------------------------------------------------------------------
                 param_gp = log([sn; kernel_gp;diag_Omega_gp;...
                     non_diag_Omega_gp]);
@@ -298,8 +295,8 @@ end
         if d_target>1
             GPpredictor.hyp.diag_Omega = exp(w_gp_final(n_parameter...
                 +1+1 : n_parameter+1+d_target));
-            GPpredictor.hyp.non_diag_Omega = exp(w_gp_final(...
-                n_parameter+1 +d_target+1:end));
+            GPpredictor.hyp.non_diag_Omega = w_gp_final(...
+                n_parameter+1 +d_target+1:end);
         end
         
     end
@@ -314,14 +311,13 @@ end
         
         
         nlml_tp= Inf;
-        numinit = 10; % sn = 0.1; % sn is the noise level
+        numinit = 10; sn = 0.1; % sn is the noise level
         %%
         if d_target ==1
             funcTP = @tp_solve_gpml;
             for j=1:numinit
-                kernel_tp = para_init(d_input);
-                sn = noise_init(ytr);
-                nu = nu_init(n_input);
+                kernel_tp = para_init(xtr, ytr);
+                nu = nu_init(xtr, ytr);
                 param_tp = log([nu;sn;kernel_tp]');
                 
                 % Optimization
@@ -334,14 +330,13 @@ end
                 end
             end
         else
-            cov_target = cov(ytr);          % Compute the target covariance
+            
             funcTP = @mvtp_solve_gpml;
             for j=1:numinit
-                kernel_tp = para_init(d_input);
-                sn = noise_init(ytr);
-                nu = nu_init(n_input);
+                kernel_tp = para_init(xtr, ytr);
+                nu = nu_init(xtr, ytr);
                 %------------------------------------------------------------------
-                [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(cov_target);
+                [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
                 %------------------------------------------------------------------
                 param_tp = log([nu;sn; kernel_tp;diag_Omega_tp;...
                     non_diag_Omega_tp]);
@@ -378,8 +373,8 @@ end
             TPpredictor.hyp.diag_Omega = exp(w_tp_final(n_parameter+2+1:...
                 n_parameter+...
                 2+d_target));
-            TPpredictor.hyp.non_diag_Omega = exp(w_tp_final(n_parameter+2 +...
-                d_target+1:end));
+            TPpredictor.hyp.non_diag_Omega = w_tp_final(n_parameter+2 +...
+                d_target+1:end);
         end
         
     end
@@ -391,15 +386,14 @@ end
         opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
         
         nlml_gp = Inf; nlml_tp= Inf;
-        numinit = 10; % sn = 0.1; % sn is the noise level
+        numinit = 10; sn = 0.1; % sn is the noise level
         
         % Select the model solve function based on the dimension of targets
         if d_target ==1                        % single output GP/TP regression
             funcGP = @gp_solve_gpml; funcTP = @tp_solve_gpml;
             for j=1:numinit
                 %% GP part
-                kernel_gp = para_init(d_input);
-                sn = noise_init(ytr);
+                kernel_gp = para_init(xtr, ytr);
                 param_gp = log([sn; kernel_gp]');
                 
                 % Optimization
@@ -412,9 +406,8 @@ end
                 end
                 
                 %% TP part
-                kernel_tp = para_init(d_input);
-                sn = noise_init(ytr);
-                nu = nu_init(n_input);
+                kernel_tp = para_init(xtr, ytr);
+                nu = nu_init(xtr, ytr);
                 param_tp = log([nu;sn;kernel_tp]');
                 % Optimization
                 [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
@@ -427,14 +420,13 @@ end
             end
             
         else                                    % multiple output regression
-            cov_target = cov(ytr);          % Compute the target covariance
+
             funcGP = @mvgp_solve_gpml; funcTP = @mvtp_solve_gpml;
             for j=1:numinit
                 %% MV-GP part
-                kernel_gp = para_init(d_input);
-                sn = noise_init(ytr);
+                kernel_gp = para_init(xtr, ytr);
                 %----------------------------------------------------------
-                [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(cov_target);
+                [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
                 %----------------------------------------------------------
                 param_gp = log([sn; kernel_gp;diag_Omega_gp;...
                     non_diag_Omega_gp]);
@@ -449,11 +441,10 @@ end
                 end
                 
                 %% MV-TP part
-                kernel_tp = para_init(d_input);
-                sn = noise_init(ytr);
-                nu = nu_init(n_input);
+                kernel_tp = para_init(xtr, ytr);
+                nu = nu_init(xtr, ytr);
                 %------------------------------------------------------------------
-                [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(cov_target);
+                [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
                 %------------------------------------------------------------------
                 param_tp = log([nu;sn; kernel_tp;diag_Omega_tp;...
                     non_diag_Omega_tp]);
@@ -489,8 +480,8 @@ end
         if d_target>1
             GPpredictor.hyp.diag_Omega = exp(w_gp_final(n_parameter+1+1 : ...
                 n_parameter +1+d_target));
-            GPpredictor.hyp.non_diag_Omega = exp(w_gp_final(n_parameter+1 +...
-                d_target+1:end));
+            GPpredictor.hyp.non_diag_Omega = w_gp_final(n_parameter+1 +...
+                d_target+1:end);
         end
         
         %% TP/MV-TP part
@@ -514,8 +505,8 @@ end
         if d_target>1
             TPpredictor.hyp.diag_Omega = exp(w_tp_final(n_parameter+2+1 : ...
                 n_parameter+2+d_target));
-            TPpredictor.hyp.non_diag_Omega = exp(w_tp_final(n_parameter+2 +...
-                d_target+1:end));
+            TPpredictor.hyp.non_diag_Omega = w_tp_final(n_parameter+2 +...
+                d_target+1:end);
         end
         
     end
