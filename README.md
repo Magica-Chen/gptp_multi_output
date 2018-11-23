@@ -13,8 +13,10 @@ There are four useful sub-functions:
 
 These four functions are used to solve GPR, TPR, MV-GPR and MV-TPR, respectively.
 
+### Initial hyperparameter functions
+* BE CAREFUL TO these initialisation funciton: **nu_init.m, Omega_init.m, SE_init.m, and nu (in TPR and MV-TPR)**. These functions are used to initialise parameters. These functions play an important role in the final results, if you would like to obtain considerable results, **PLEASE USE YOUR OWN FUNCTIONS** according to **YOUR OWN EXPERT OPINIONS using training data**.
+
 ### Ulti functions
-* nu_init.m, Omega_init.m, SE_init.m are used to initialise parameter nu (in TPR and MV-TPR)
 * MultiGamma.m and vec2mat_diag.m are two small functions, which are used in the mvgp_solve_gpml.m and mvtp_solve_gpml.m.
 * Omega(in MV-GPR and MV-TPR), and hyperparameters in the specific kernel. 
 
