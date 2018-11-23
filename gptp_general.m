@@ -151,7 +151,7 @@ if nargin == 6
             %             % comparison of GPR and TPR, otherwise this is a comparison of
             %             % MV-GPR and MV-TPR
             %             [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,n_input,...
-            %                 d_input,d_target,k,dk,para_init,nu_init,n_parameter,optim_new);
+            %                 d_input,d_target,k,dk,para_init,nv_init,n_parameter,optim_new);
             %             varargout = {GPpredictor, TPpredictor};
             
         case 'GPVS'
@@ -317,8 +317,8 @@ end
             funcTP = @tp_solve_gpml;
             for j=1:numinit
                 kernel_tp = para_init(xtr, ytr);
-                nu = nu_init(xtr, ytr);
-                param_tp = log([nu;sn;kernel_tp]');
+                nv = nv_init(xtr, ytr);
+                param_tp = log([nv;sn;kernel_tp]');
                 
                 % Optimization
                 [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
@@ -334,11 +334,11 @@ end
             funcTP = @mvtp_solve_gpml;
             for j=1:numinit
                 kernel_tp = para_init(xtr, ytr);
-                nu = nu_init(xtr, ytr);
+                nv = nv_init(xtr, ytr);
                 %------------------------------------------------------------------
                 [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
                 %------------------------------------------------------------------
-                param_tp = log([nu;sn; kernel_tp;diag_Omega_tp;...
+                param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
                     non_diag_Omega_tp]);
                 %------------------------------------------------------------------
                 % Optimization
@@ -364,7 +364,7 @@ end
         TPpredictor.ub = ub_tp;
         TPpredictor.nlml = nlml_tp_final;
         
-        TPpredictor.hyp.nu = exp(w_tp_final(1));
+        TPpredictor.hyp.nv = exp(w_tp_final(1));
         TPpredictor.hyp.sn = exp(w_tp_final(2));
         TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
         TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
@@ -407,8 +407,8 @@ end
                 
                 %% TP part
                 kernel_tp = para_init(xtr, ytr);
-                nu = nu_init(xtr, ytr);
-                param_tp = log([nu;sn;kernel_tp]');
+                nv = nv_init(xtr, ytr);
+                param_tp = log([nv;sn;kernel_tp]');
                 % Optimization
                 [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
                     param_tp,opts);
@@ -442,11 +442,11 @@ end
                 
                 %% MV-TP part
                 kernel_tp = para_init(xtr, ytr);
-                nu = nu_init(xtr, ytr);
+                nv = nv_init(xtr, ytr);
                 %------------------------------------------------------------------
                 [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
                 %------------------------------------------------------------------
-                param_tp = log([nu;sn; kernel_tp;diag_Omega_tp;...
+                param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
                     non_diag_Omega_tp]);
                 %------------------------------------------------------------------
                 % Optimization
@@ -497,7 +497,7 @@ end
         TPpredictor.ub = ub_tp;
         TPpredictor.nlml = nlml_tp_final;
         
-        TPpredictor.hyp.nu = exp(w_tp_final(1));
+        TPpredictor.hyp.nv = exp(w_tp_final(1));
         TPpredictor.hyp.sn = exp(w_tp_final(2));
         TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
         TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));

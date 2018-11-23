@@ -6,7 +6,7 @@ function [varargout] = mvtp_solve_gpml(w,x,y,k,xt)
 %   [...] = mvtp_solve_gpml(w,x,y,k,xt)
 %
 % In:
-%   w     - Log-parameters (nu, sigma2, theta, Omega)
+%   w     - Log-parameters (nv, sigma2, theta, Omega)
 %   x     - Training inputs
 %   y     - Training outputs
 %   k     - Covariance function handle as @(x,theta) ...
@@ -28,7 +28,7 @@ function [varargout] = mvtp_solve_gpml(w,x,y,k,xt)
 % Description:
 %   Consider the following MV-TP regression [1] problem:
 %
-%       f ~ MV-TP(0,k(x,x'),nu),
+%       f ~ MV-TP(0,k(x,x'),nv),
 %     y_k = f(x_k),  k=1,2,...,n,
 %
 %   where k(x,x') = k_theta(x,x') + sigma2*delta(x,x'). The covariance
@@ -58,7 +58,7 @@ function [varargout] = mvtp_solve_gpml(w,x,y,k,xt)
 %---------------------------------------------------------------------
 %% Extract values, some values should do log transformation
 n      = size(x,1);   d = size(y,2);
-% 1st parameter is nu
+% 1st parameter is nv
 para_nu = exp(w(1));
 
 % 2nd parameter is sigma2
@@ -147,7 +147,7 @@ if nargin>4 && (~isempty(xt) && ~iscell(xt))
     if nargout>2
         % Conditional variance is different
         Covft = kron(K22 - v'*v,Omega + vv'*vv)./(para_nu+n-2);
-        %Covft = (K22 - v'*v)*(nu+beta1-2)/(nu+n-2);
+        %Covft = (K22 - v'*v)*(nv+beta1-2)/(nv+n-2);
         varargout = {Eft,Varft,Covft};
     end
     
@@ -184,7 +184,7 @@ else
         invU = L_U'\(L_U\eye(n));
         invOmega = L_Omega'\(L_Omega\eye(d));
         
-        % Derivative w.r.t. nu
+        % Derivative w.r.t. nv
         eg(1) = sum(log(diag(L_U)))- sum(log(diag(L_kernel))) + ...
             1/2*MultiGamma(1/2*tau,n,'DerLog')- 1/2*MultiGamma(1/2*...
             (tau+d),n,'DerLog');

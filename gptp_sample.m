@@ -1,6 +1,6 @@
-function [varargout] = gptp_sample(cov_x,x,hyp,nu)
+function [varargout] = gptp_sample(cov_x,x,hyp,nv)
 % This function is to generate a sample from GP(0,C) or genearte a sample
-% from TP(nu,0,C), where C is the selected kernel and nu is the degree of
+% from TP(nv,0,C), where C is the selected kernel and nv is the degree of
 % freedom.
 %   Formula
 %     GP sample:
@@ -10,23 +10,23 @@ function [varargout] = gptp_sample(cov_x,x,hyp,nu)
 %     (u*sqrt(s))(u*sqrt(s)' = C;
 %
 %     TP sample:
-%     If tn \sim t(nu),which the mean of t distribution is 0 and the
-%     variance is nu/(nu-2), C is the kernel GP,which can be written as the
+%     If tn \sim t(nv),which the mean of t distribution is 0 and the
+%     variance is nv/(nv-2), C is the kernel GP,which can be written as the
 %     SVD decompostion, namely, C = u*s*v', thus,
-%     z_tp = (nu/(nu-2))^(-1/2)*u*sqrt(s)*tn is a sample of TP(nu,0,C),
-%     since E(z_tp)=0; Cov(z_tp,z_tp') = (nu/(nu-2))^(-0.5))*(U*sqrt(s)*
-%                                        (nu/(nu-2))*((nu/(nu-2))^(-0.5)*U*sqrt(s))'
+%     z_tp = (nv/(nv-2))^(-1/2)*u*sqrt(s)*tn is a sample of TP(nv,0,C),
+%     since E(z_tp)=0; Cov(z_tp,z_tp') = (nv/(nv-2))^(-0.5))*(U*sqrt(s)*
+%                                        (nv/(nv-2))*((nv/(nv-2))^(-0.5)*U*sqrt(s))'
 %                                      = (U*sqrt(s))(U*sqrt(s))'=C
 %   Usage:
 %     disp('Usage: [gp_sample] = gptp_sample(cov_x,x,hyp);')
-%     disp('   or: [tp_sample] = gptp_sample(cov_x,x,hyp,nu);')
-%     disp('   or: [gp_sample tp_sample] = gptp_sample(cov,x,hyp,nu);')
+%     disp('   or: [tp_sample] = gptp_sample(cov_x,x,hyp,nv);')
+%     disp('   or: [gp_sample tp_sample] = gptp_sample(cov,x,hyp,nv);')
 %
 %   Input:
 %     cov_x: the kernel or covariance function of x
 %     x    : the points which is used to evaluate the cov
 %     hyp  : the enough hypers, which is used to evaluate the cov
-%     nu   : the degree of freedom of student t distribution
+%     nv   : the degree of freedom of student t distribution
 %
 %   Output:
 %     gp_sample and tp_sample
@@ -36,8 +36,8 @@ function [varargout] = gptp_sample(cov_x,x,hyp,nu)
 
 if nargin < 3 || nargin >4
     disp('Usage: [gp_sample] = gptp_sample(cov_x,x,hyp);')
-    disp('   or: [tp_sample] = gptp_sample(cov_x,x,hyp,nu);')
-    disp('   or: [gp_sample tp_sample] = gptp_sample(cov,x,hyp,nu);')
+    disp('   or: [tp_sample] = gptp_sample(cov_x,x,hyp,nv);')
+    disp('   or: [gp_sample tp_sample] = gptp_sample(cov,x,hyp,nv);')
     return
 end
 
@@ -52,10 +52,10 @@ if nargin == 3
 end
 
 if nargin == 4
-    tn = trnd(nu,n,1); % Genearate a sample from student t distribution with
-                       % degree of freedom is nu.
-                       % The mean is 0 and the variance is nu/(nu-2)
-    z_tp = (nu/(nu-2))^(-0.5).*u*sqrt(s)*tn;
+    tn = trnd(nv,n,1); % Genearate a sample from student t distribution with
+                       % degree of freedom is nv.
+                       % The mean is 0 and the variance is nv/(nv-2)
+    z_tp = (nv/(nv-2))^(-0.5).*u*sqrt(s)*tn;
     
     if nargout < 2
         varargout = {z_tp};

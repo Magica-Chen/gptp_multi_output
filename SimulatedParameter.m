@@ -13,7 +13,7 @@ clc
 clear
 close all
 %% Global variable
-seeds = 123;
+seeds = 63;
 rng(seeds)
 % Sample points
 N_sample = 100;
@@ -32,7 +32,7 @@ phi11 = 1; phi22 = 1;
 psi12 = 0.8;
 sf = 2.5; ell = 0.5;
 noise = 0.01;
-nu = 3;
+nv = 3;
 
 cov_row = [phi11 psi12;psi12 phi22];
 hyp_init = log([ell,sf]);
@@ -41,82 +41,78 @@ mGPpredictor = cell(N_repeats,1);
 mTPpredictor = cell(N_repeats,1);
 yte_gp = cell(N_repeats,1);
 yte_tp = cell(N_repeats,1);
-% for i = 1: N_repeats
-%     y_noise_gp = mv_gptp_sample(cov_col,cov_row,x, hyp_init);
-%     % This is parameter estimation example
-%     ytr_gp = y_noise_gp + normrnd(0, noise, size(y_noise_gp));
-%     
-%     mGPpredictor{i} = gptp_general(xtr, ytr_gp, xte, kernel, init_func, "GPVS");
-%     yte_gp{i} = y_noise_gp;
-% end
-
 for i = 1: N_repeats
-    y_noise_tp = mv_gptp_sample(cov_col,cov_row,x, hyp_init, nu);
+    y_noise_gp = mv_gptp_sample(cov_col,cov_row,x, hyp_init);
     % This is parameter estimation example
-    ytr_tp = y_noise_tp + normrnd(0, noise, size(y_noise_tp));
-
-    mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, kernel, init_func, "TPVS");
-    yte_tp{i} = y_noise_tp;
+    ytr_gp = y_noise_gp + normrnd(0, noise, size(y_noise_gp));
+    
+    mGPpredictor{i} = gptp_general(xtr, ytr_gp, xte, kernel, init_func, "GPVS");
+    yte_gp{i} = y_noise_gp;
 end
 
+% for i = 1: N_repeats
+%     y_noise_tp = mv_gptp_sample(cov_col,cov_row,x, hyp_init, nv);
+%     % This is parameter estimation example
+%     ytr_tp = y_noise_tp + normrnd(0, noise, size(y_noise_tp));
+% 
+%     mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, kernel, init_func, "TPVS");
+%     yte_tp{i} = y_noise_tp;
+% end
+
 %%
-% save("Run10_new", "mGPpredictor", "mTPpredictor", "sn", "nu", "phi11", ...
+% save("Run10_new", "mGPpredictor", "mTPpredictor", "sn", "nv", "phi11", ...
 %     "phi22", "psi12", "ell", "sf")
 %% parameter estimation quality
 
-pMAE_sn_gp = zeros(N_repeats,1);
-pMAE_sf_gp = zeros(N_repeats,1);
-pMAE_ell_gp = zeros(N_repeats,1);
-pMAE_psi12_gp = zeros(N_repeats,1);
-pMAE_phi11_gp = zeros(N_repeats,1);
-pMAE_phi22_gp = zeros(N_repeats,1);
-aMAE_mgp1 = zeros(N_repeats,1);
-aMAE_mgp2 = zeros(N_repeats,1);
+sn_gp = zeros(N_repeats,1);
+sf_gp = zeros(N_repeats,1);
+ell_gp = zeros(N_repeats,1);
+psi12_gp = zeros(N_repeats,1);
+phi11_gp = zeros(N_repeats,1);
+phi22_gp = zeros(N_repeats,1);
 
-pMAE_sn_tp = zeros(N_repeats,1);
-pMAE_sf_tp = zeros(N_repeats,1);
-pMAE_ell_tp = zeros(N_repeats,1);
-pMAE_psi12_tp = zeros(N_repeats,1);
-pMAE_phi11_tp = zeros(N_repeats,1);
-pMAE_phi22_tp = zeros(N_repeats,1);
-pMAE_nu_tp = zeros(N_repeats,1);
+sn_tp = zeros(N_repeats,1);
+sf_tp = zeros(N_repeats,1);
+ell_tp = zeros(N_repeats,1);
+psi12_tp = zeros(N_repeats,1);
+phi11_tp = zeros(N_repeats,1);
+phi22_tp = zeros(N_repeats,1);
+nv_tp = zeros(N_repeats,1);
 
-aMAE_mtp1 = zeros(N_repeats,1);
-aMAE_mtp2 = zeros(N_repeats,1);
 for i = 1: N_repeats
-%     pMAE_sn_gp(i) = (mGPpredictor{i}.hyp.sn - noise)/(noise);
-%     pMAE_sf_gp(i) = (mGPpredictor{i}.hyp.sf - sf)/sf;
-%     pMAE_ell_gp(i) = (mGPpredictor{i}.hyp.ell - ell)/ell;
-%     pMAE_psi12_gp(i) = (mGPpredictor{i}.hyp.non_diag_Omega - psi12)/psi12;
-%     pMAE_phi11_gp(i) = (mGPpredictor{i}.hyp.diag_Omega(1) - phi11)/phi11;
-%     pMAE_phi22_gp(i) = (mGPpredictor{i}.hyp.diag_Omega(2) - phi22)/phi22;
-%     aMAE_mgp1(i) = mae(mGPpredictor{i}.mean(:,1),yte_gp{i}(:,1));
-%     aMAE_mgp2(i) = mae(mGPpredictor{i}.mean(:,2),yte_gp{i}(:,2));
+    sn_gp(i) = mGPpredictor{i}.hyp.sn;
+    sf_gp(i) = mGPpredictor{i}.hyp.sf;
+    ell_gp(i) = mGPpredictor{i}.hyp.ell;
+    psi12_gp(i) = mGPpredictor{i}.hyp.non_diag_Omega;
+    phi11_gp(i) = mGPpredictor{i}.hyp.diag_Omega(1);
+    phi22_gp(i) = mGPpredictor{i}.hyp.diag_Omega(2);    
     
-    
-    pMAE_sn_tp(i) = (mTPpredictor{i}.hyp.sn - noise)/(noise);
-    pMAE_sf_tp(i) = (mTPpredictor{i}.hyp.sf - sf)/sf;
-    pMAE_ell_tp(i) = (mTPpredictor{i}.hyp.ell - ell)/ell;
-    pMAE_psi12_tp(i) = (mTPpredictor{i}.hyp.non_diag_Omega - psi12)/psi12;
-    pMAE_phi11_tp(i) = (mTPpredictor{i}.hyp.diag_Omega(1) - phi11)/phi11;
-    pMAE_phi22_tp(i) = (mTPpredictor{i}.hyp.diag_Omega(2) - phi22)/phi22;
-    pMAE_nu_tp(i) = (mTPpredictor{i}.hyp.nu - nu)/nu;
-    
-    aMAE_mtp1(i) = mae(mTPpredictor{i}.mean(:,1),yte_tp{i}(:,1));
-    aMAE_mtp2(i) = mae(mTPpredictor{i}.mean(:,2),yte_tp{i}(:,2));
+%     sn_tp(i) = mTPpredictor{i}.hyp.sn;
+%     sf_tp(i) = mTPpredictor{i}.hyp.sf;
+%     ell_tp(i) = mTPpredictor{i}.hyp.ell;
+%     psi12_tp(i) = mTPpredictor{i}.hyp.non_diag_Omega;
+%     phi11_tp(i) = mTPpredictor{i}.hyp.diag_Omega(1);
+%     phi22_tp(i) = mTPpredictor{i}.hyp.diag_Omega(2);
+%     nv_tp(i) = mTPpredictor{i}.hyp.nv;
     
 end
 
+pM_GP = [ median(sn_gp), median(sf_gp), ...
+    median(ell_gp),median(phi11_gp), ...
+    median(phi22_gp),median(psi12_gp)]
 
-% pMAE_GP = [median(abs(pMAE_sn_gp)), median(abs(pMAE_sf_gp)), ...
-%     median(abs(pMAE_ell_gp)),median(abs(pMAE_phi11_gp)), ...
-%     median(abs(pMAE_phi22_gp)),median(abs(pMAE_psi12_gp))]
+pMAE_GP = [ median(abs(noise - sn_gp))/noise, median(abs(sf - sf_gp))/sf, ...
+    median(abs(ell - ell_gp))/ell,median(abs(phi11 - phi11_gp))/phi11, ...
+    median(abs(phi22 - phi22_gp))/phi22, median(abs(psi12 -psi12_gp))/psi12]
 
-pMAE_TP = [ median(abs(pMAE_sn_tp)), median(abs(pMAE_sf_tp)), ...
-    median(abs(pMAE_ell_tp)),median(abs(pMAE_phi11_tp)), ...
-    median(abs(pMAE_phi22_tp)),median(abs(pMAE_psi12_tp)), ...
-    median(abs(pMAE_nu_tp))]
+
+% pM_TP = [ median(sn_tp), median(sf_tp), ...
+%     median(ell_tp),median(phi11_tp), ...
+%     median(phi22_tp),median(psi12_tp), ...
+%     median(nv_tp)]
 % 
-% accuracy= [median(aMAE_mgp1), median(aMAE_mtp1);
-%     median(aMAE_mgp2), median(aMAE_mtp2)]
+% pMAE_TP = [ median(abs(noise - sn_tp))/noise, median(abs(sf - sf_tp))/sf, ...
+%     median(abs(ell - ell_tp))/ell,median(abs(phi11 - phi11_tp))/phi11, ...
+%     median(abs(phi22 - phi22_tp))/phi22, median(abs(psi12 -psi12_tp))/psi12, ...
+%     median(abs(nv - nv_tp))/nv]
 
