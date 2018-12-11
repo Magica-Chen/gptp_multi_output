@@ -1,4 +1,5 @@
 function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
+
 % GPTP_GENERAL -- Solve GP/TP regression for both single output and
 % multiple a output problem.
 %
@@ -81,8 +82,7 @@ if nargin < 3 || nargin > 6
     return
 end
 
-n_input = size(xtr,1); % length of training set
-d_input = size(xtr,2); % dimension of training input
+[n_input, d_input] = size(xtr); % length and dimension of training input
 d_target =size(ytr,2); % dimension of target
 
 if n_input < 4
@@ -114,36 +114,33 @@ for i = 1:n_parameter
     dk{i} = @(hyp,x,z) covfunc(hyp,x,z,i);
 end
 
-
-% opts = optimset('GradObj','on','display','off');
 %-------------------------Matlab version is < 2017-------------------------
-% optim_new = optimset('GradObj','on','display','off','MaxIter',500);
+optim_new = optimset('GradObj','on','display','off','MaxIter',500);
 %-------------------------Matlab version >=2017----------------------------
-optim_new = optimset('GradObj','On','Algorithm','trust-region','display',...
-    'off','MaxIter',250);
-
-% opts_new = optimset('GradObj','on','display','off','MaxIter',1000);
+% optim = optimset('GradObj','On','Algorithm','trust-region','display',...
+%     'off');
+% optim_new = optimset('GradObj','On','Algorithm','trust-region','display',...
+%     'off','MaxIter',250);
 
 %% Default function includes both GP and TP (or MV-GP and MV-TP)
 if nargin < 6
-    [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,n_input,d_input,...
-        d_target,k,dk,para_init, n_parameter,optim_new);
+    [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,k,dk,...
+        para_init, n_parameter,optim_new);
     varargout = {GPpredictor, TPpredictor};
 end
 %% According to selected option
-
 if nargin == 6
     switch option
         case 'GP'
             % only perform GPR
-            GPpredictor = gp_part(xtr, ytr, xte, d_input,d_target,k,dk,...
-                para_init, n_parameter,optim_new);
+            GPpredictor = gp_part(xtr, ytr, xte,k,dk, para_init, ...
+                n_parameter,optim_new);
             varargout = {GPpredictor};
             
         case 'TP'
             % only perform TPR
-            TPpredictor = tp_part(xtr, ytr, xte,n_input,d_input,d_target,...
-                k,dk,para_init, n_parameter,optim_new);
+            TPpredictor = tp_part(xtr, ytr, xte, k,dk,para_init, ...
+                n_parameter,optim_new);
             varargout = {TPpredictor};
             
             %         case 'VS'
@@ -156,8 +153,8 @@ if nargin == 6
             
         case 'GPVS'
             if d_target > 1
-                mvGPpredictor = gp_part(xtr, ytr, xte, d_input,d_target,...
-                    k,dk,para_init, n_parameter,optim_new);
+                mvGPpredictor = gp_part(xtr, ytr, xte, k,dk,para_init, ...
+                    n_parameter,optim_new);
                 if nargout == 1
                     varargout = {mvGPpredictor};
                 else
@@ -175,8 +172,8 @@ if nargin == 6
             
         case 'TPVS'
             if d_target > 1
-                mvTPpredictor = tp_part(xtr, ytr, xte,n_input,d_input,...
-                    d_target,k,dk,para_init,n_parameter,optim_new);
+                mvTPpredictor = tp_part(xtr, ytr, xte,k,dk,para_init,...
+                    n_parameter,optim_new);
                 if nargout == 1
                     varargout = {mvTPpredictor};
                 else
@@ -200,315 +197,304 @@ if nargin == 6
             % MV-GPR and MV-TPR.
             if d_target > 1
                 [mvGPpredictor, mvTPpredictor] = gptp_part(xtr, ytr, xte, ...
-                    n_input,d_input,d_target,k,dk,para_init,n_parameter,...
-                    optim_new);
+                    k,dk,para_init,n_parameter, optim_new);
                 if nargout == 2
                     varargout = {mvGPpredictor, mvTPpredictor};
-                else
-                    
+                else     
                     indGPpredictor = cell(1,d_target); % allocate space
-                    indTPpredictor = cell(1,d_target);
-                    
+                    indTPpredictor = cell(1,d_target);               
                     for i = 1:d_target
                         [indGPpredictor{i}, indTPpredictor{i}] = gptp_part(...
-                            xtr,ytr(:,i),xte,n_input,d_input,1,k,dk,...
-                            para_init,n_parameter,optim_new);
-                    end
-                    
+                            xtr,ytr(:,i),xte,k,dk, para_init,n_parameter,optim_new);
+                    end                    
                     varargout = {mvGPpredictor, mvTPpredictor,indGPpredictor,...
                         indTPpredictor};
                 end
             else
                 [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, ...
-                    n_input,d_input,d_target,k,dk,para_init,n_parameter,...
-                    optim_new );
+                    k,dk,para_init,n_parameter, optim_new );
                 varargout = {GPpredictor, TPpredictor};
-            end
-            
+            end   
     end
 end
+end
+
 %% implement GPR/MV-GPR only
-    function GPpredictor = gp_part(xtr, ytr, xte, d_input,d_target,k,dk,...
-            para_init, n_parameter,opts_new)
-        %% Global part
-        % Optimization option
-        % opts = optimset('GradObj','on','display','off');
-        opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
-        
-        
-        nlml_gp= Inf;
-        numinit = 10; sn = 0.1; % sn is the noise level
-        
-        if d_target ==1                            % 1 output regression
-            funcGP = @gp_solve_gpml;
-            for j=1:numinit
-                kernel_gp = para_init(xtr, ytr);
-                param_gp = log([sn; kernel_gp]');
-                % Optimization
-                [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
-                    param_gp,opts);
-                
-                if (nlml_gp_new < nlml_gp)
-                    param_gp_final = param_gp ;
-                    nlml_gp = nlml_gp_new;
-                end
-            end
-            
-        else
-            funcGP = @mvgp_solve_gpml;
-            for j=1:numinit                 % multiple output regression
-                kernel_gp = para_init(xtr, ytr);
-                %------------------------------------------------------------------
-                [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
-                %------------------------------------------------------------------
-                param_gp = log([sn; kernel_gp;diag_Omega_gp;...
-                    non_diag_Omega_gp]);
-                %------------------------------------------------------------------
-                % Optimization
-                [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
-                    param_gp,opts);
-                
-                if (nlml_gp_new < nlml_gp)
-                    param_gp_final = param_gp;
-                    nlml_gp = nlml_gp_new;
-                end
-            end
-        end
-        
-        [w_gp_final,nlml_gp_final] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk),...
-            param_gp_final,...
-            opts_new);
-        [m_gp,s2_gp,cov_gp,lb_gp,ub_gp] = funcGP(w_gp_final,xtr,ytr,k,xte);
-        
-        %build a struct class variable
-        GPpredictor.mean = m_gp;
-        GPpredictor.variance = s2_gp;
-        GPpredictor.covariance = cov_gp;
-        GPpredictor.lb = lb_gp;
-        GPpredictor.ub = ub_gp;
-        GPpredictor.nlml = nlml_gp_final;
-        
-        GPpredictor.hyp.sn = exp(w_gp_final(1));
-        GPpredictor.hyp.ell = exp(w_gp_final(2:n_parameter));
-        GPpredictor.hyp.sf = exp(w_gp_final(n_parameter+1));
-        
-        if d_target>1
-            GPpredictor.hyp.diag_Omega = exp(w_gp_final(n_parameter...
-                +1+1 : n_parameter+1+d_target));
-            GPpredictor.hyp.non_diag_Omega = w_gp_final(...
-                n_parameter+1 +d_target+1:end);
-        end
-        
-    end
-%% implement TPR/MV-TPR only
-    function TPpredictor = tp_part(xtr, ytr, xte,n_input,d_input,d_target,...
-            k,dk,para_init,n_parameter,opts_new)
-        %% Global part
-        
-        % Optimization option
-        % opts = optimset('GradObj','on','display','off');
-        opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
-        
-        
-        nlml_tp= Inf;
-        numinit = 10; sn = 0.1; % sn is the noise level
-        %%
-        if d_target ==1
-            funcTP = @tp_solve_gpml;
-            for j=1:numinit
-                kernel_tp = para_init(xtr, ytr);
-                nv = nv_init(xtr, ytr);
-                param_tp = log([nv;sn;kernel_tp]');
-                
-                % Optimization
-                [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
-                    param_tp,opts);
-                
-                if (nlml_tp_new < nlml_tp)
-                    param_tp_final = param_tp;
-                    nlml_tp = nlml_tp_new;
-                end
-            end
-        else
-            
-            funcTP = @mvtp_solve_gpml;
-            for j=1:numinit
-                kernel_tp = para_init(xtr, ytr);
-                nv = nv_init(xtr, ytr);
-                %------------------------------------------------------------------
-                [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
-                %------------------------------------------------------------------
-                param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
-                    non_diag_Omega_tp]);
-                %------------------------------------------------------------------
-                % Optimization
-                [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
-                    param_tp,opts);
-                
-                if (nlml_tp_new < nlml_tp)
-                    param_tp_final = param_tp;
-                    nlml_tp = nlml_tp_new;
-                end
-            end
-        end
-        
-        [w_tp_final,nlml_tp_final] = fminunc(@(w) funcTP(w,xtr,ytr,...
-            k,dk),param_tp_final,opts_new);
-        [m_tp,s2_tp,cov_tp,lb_tp,ub_tp] = funcTP(w_tp_final,xtr,ytr,k,xte);
-        
-        % build a struct class variable
-        TPpredictor.mean = m_tp;
-        TPpredictor.variance = s2_tp;
-        TPpredictor.covariance = cov_tp;
-        TPpredictor.lb = lb_tp;
-        TPpredictor.ub = ub_tp;
-        TPpredictor.nlml = nlml_tp_final;
-        
-        TPpredictor.hyp.nv = exp(w_tp_final(1));
-        TPpredictor.hyp.sn = exp(w_tp_final(2));
-        TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
-        TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
-        
-        if d_target>1
-            TPpredictor.hyp.diag_Omega = exp(w_tp_final(n_parameter+2+1:...
-                n_parameter+...
-                2+d_target));
-            TPpredictor.hyp.non_diag_Omega = w_tp_final(n_parameter+2 +...
-                d_target+1:end);
-        end
-        
-    end
-%% implement both GPR/MV-GPR and TPR/MV-TPR
-    function [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, ...
-            n_input,d_input,d_target,k,dk,para_init,n_parameter,opts_new)
-        
-        % opts = optimset('GradObj','on','display','off');
-        opts = optimset('GradObj','On','Algorithm','trust-region','display','off');
-        
-        nlml_gp = Inf; nlml_tp= Inf;
-        numinit = 10; sn = 0.1; % sn is the noise level
-        
-        % Select the model solve function based on the dimension of targets
-        if d_target ==1                        % single output GP/TP regression
-            funcGP = @gp_solve_gpml; funcTP = @tp_solve_gpml;
-            for j=1:numinit
-                %% GP part
-                kernel_gp = para_init(xtr, ytr);
-                param_gp = log([sn; kernel_gp]');
-                
-                % Optimization
-                [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
-                    param_gp,opts);
-                
-                if (nlml_gp_new < nlml_gp)
-                    param_gp_final = param_gp ;
-                    nlml_gp = nlml_gp_new;
-                end
-                
-                %% TP part
-                kernel_tp = para_init(xtr, ytr);
-                nv = nv_init(xtr, ytr);
-                param_tp = log([nv;sn;kernel_tp]');
-                % Optimization
-                [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
-                    param_tp,opts);
-                
-                if (nlml_tp_new < nlml_tp)
-                    param_tp_final = param_tp;
-                    nlml_tp = nlml_tp_new;
-                end
-            end
-            
-        else                                    % multiple output regression
+function GPpredictor = gp_part(xtr, ytr, xte, k, dk, para_init, ...
+    n_parameter,opts_new)
+%% Global part
+% [n_input, d_input] = size(xtr); % length and dimension of training input
+d_target =size(ytr,2); % dimension of target
+opts = optimset('GradObj','on','display','off');
+nlml_gp= Inf;
+numinit = 10; sn = 0.1; % sn is the noise level
 
-            funcGP = @mvgp_solve_gpml; funcTP = @mvtp_solve_gpml;
-            for j=1:numinit
-                %% MV-GP part
-                kernel_gp = para_init(xtr, ytr);
-                %----------------------------------------------------------
-                [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
-                %----------------------------------------------------------
-                param_gp = log([sn; kernel_gp;diag_Omega_gp;...
-                    non_diag_Omega_gp]);
-                %----------------------------------------------------------
-                % Optimization
-                [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
-                    param_gp,opts);
-                
-                if (nlml_gp_new < nlml_gp)
-                    param_gp_final = param_gp;
-                    nlml_gp = nlml_gp_new;
-                end
-                
-                %% MV-TP part
-                kernel_tp = para_init(xtr, ytr);
-                nv = nv_init(xtr, ytr);
-                %------------------------------------------------------------------
-                [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
-                %------------------------------------------------------------------
-                param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
-                    non_diag_Omega_tp]);
-                %------------------------------------------------------------------
-                % Optimization
-                [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
-                    param_tp,opts);
-                
-                if (nlml_tp_new < nlml_tp)
-                    param_tp_final = param_tp;
-                    nlml_tp = nlml_tp_new;
-                end
-            end
+if d_target ==1                            % 1 output regression
+    funcGP = @gp_solve_gpml;
+    for j=1:numinit
+        kernel_gp = para_init(xtr, ytr);
+        param_gp = log([sn; kernel_gp]');
+        % Optimization
+        [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
+            param_gp,opts);
+        
+        if (nlml_gp_new < nlml_gp)
+            param_gp_final = param_gp ;
+            nlml_gp = nlml_gp_new;
         end
-        
-        %% GP/MV-GP part
-        [w_gp_final,nlml_gp_final] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk),...
-            param_gp_final,...
-            opts_new);
-        [m_gp,s2_gp,cov_gp,lb_gp,ub_gp] = funcGP(w_gp_final,xtr,ytr,k,xte);
-        % build a struct class variable
-        GPpredictor.mean = m_gp;
-        GPpredictor.variance = s2_gp;
-        GPpredictor.covariance = cov_gp;
-        GPpredictor.lb = lb_gp;
-        GPpredictor.ub = ub_gp;
-        GPpredictor.nlml = nlml_gp_final;
-        
-        GPpredictor.hyp.sn = exp(w_gp_final(1));
-        GPpredictor.hyp.ell = exp(w_gp_final(2:n_parameter));
-        GPpredictor.hyp.sf = exp(w_gp_final(n_parameter+1));
-        
-        if d_target>1
-            GPpredictor.hyp.diag_Omega = exp(w_gp_final(n_parameter+1+1 : ...
-                n_parameter +1+d_target));
-            GPpredictor.hyp.non_diag_Omega = w_gp_final(n_parameter+1 +...
-                d_target+1:end);
-        end
-        
-        %% TP/MV-TP part
-        [w_tp_final,nlml_tp_final] = fminunc(@(w) funcTP(w,xtr,ytr,...
-            k,dk),param_tp_final,opts_new);
-        [m_tp,s2_tp,cov_tp,lb_tp,ub_tp] = funcTP(w_tp_final,xtr,ytr,k,xte);
-        
-        % build a struct class variable
-        TPpredictor.mean = m_tp;
-        TPpredictor.variance = s2_tp;
-        TPpredictor.covariance = cov_tp;
-        TPpredictor.lb = lb_tp;
-        TPpredictor.ub = ub_tp;
-        TPpredictor.nlml = nlml_tp_final;
-        
-        TPpredictor.hyp.nv = exp(w_tp_final(1));
-        TPpredictor.hyp.sn = exp(w_tp_final(2));
-        TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
-        TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
-        
-        if d_target>1
-            TPpredictor.hyp.diag_Omega = exp(w_tp_final(n_parameter+2+1 : ...
-                n_parameter+2+d_target));
-            TPpredictor.hyp.non_diag_Omega = w_tp_final(n_parameter+2 +...
-                d_target+1:end);
-        end
-        
     end
+    
+else
+    funcGP = @mvgp_solve_gpml;
+    for j=1:numinit                 % multiple output regression
+        kernel_gp = para_init(xtr, ytr);
+        %------------------------------------------------------------------
+        [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
+        %------------------------------------------------------------------
+        param_gp = log([sn; kernel_gp;diag_Omega_gp;...
+            non_diag_Omega_gp]);
+        %------------------------------------------------------------------
+        % Optimization
+        [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
+            param_gp,opts);
+        
+        if (nlml_gp_new < nlml_gp)
+            param_gp_final = param_gp;
+            nlml_gp = nlml_gp_new;
+        end
+    end
+end
+
+[w_gp_final,nlml_gp_final] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk),...
+    param_gp_final,...
+    opts_new);
+[m_gp,s2_gp,cov_gp,lb_gp,ub_gp] = funcGP(w_gp_final,xtr,ytr,k,xte);
+
+%build a struct class variable
+GPpredictor.mean = m_gp;
+GPpredictor.variance = s2_gp;
+GPpredictor.covariance = cov_gp;
+GPpredictor.lb = lb_gp;
+GPpredictor.ub = ub_gp;
+GPpredictor.nlml = nlml_gp_final;
+
+GPpredictor.hyp.sn = exp(w_gp_final(1));
+GPpredictor.hyp.ell = exp(w_gp_final(2:n_parameter));
+GPpredictor.hyp.sf = exp(w_gp_final(n_parameter+1));
+
+if d_target>1
+    GPpredictor.hyp.diag_Omega = exp(w_gp_final(n_parameter...
+        +1+1 : n_parameter+1+d_target));
+    GPpredictor.hyp.non_diag_Omega = w_gp_final(...
+        n_parameter+1 +d_target+1:end);
+end
+end
+
+%% implement TPR/MV-TPR only
+function TPpredictor = tp_part(xtr, ytr, xte, k,dk,para_init,...
+    n_parameter,opts_new)
+%% Global part
+% [n_input, d_input] = size(xtr); % length and dimension of training input
+d_target =size(ytr,2); % dimension of target
+opts = optimset('GradObj','on','display','off');
+nlml_tp= Inf;
+numinit = 10; sn = 0.1; % sn is the noise level
+%%
+if d_target ==1
+    funcTP = @tp_solve_gpml;
+    for j=1:numinit
+        kernel_tp = para_init(xtr, ytr);
+        nv = nv_init(xtr, ytr);
+        param_tp = log([nv;sn;kernel_tp]');
+        
+        % Optimization
+        [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
+            param_tp,opts);
+        
+        if (nlml_tp_new < nlml_tp)
+            param_tp_final = param_tp;
+            nlml_tp = nlml_tp_new;
+        end
+    end
+else
+    
+    funcTP = @mvtp_solve_gpml;
+    for j=1:numinit
+        kernel_tp = para_init(xtr, ytr);
+        nv = nv_init(xtr, ytr);
+        %------------------------------------------------------------------
+        [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
+        %------------------------------------------------------------------
+        param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
+            non_diag_Omega_tp]);
+        %------------------------------------------------------------------
+        % Optimization
+        [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
+            param_tp,opts);
+        
+        if (nlml_tp_new < nlml_tp)
+            param_tp_final = param_tp;
+            nlml_tp = nlml_tp_new;
+        end
+    end
+end
+
+[w_tp_final,nlml_tp_final] = fminunc(@(w) funcTP(w,xtr,ytr,...
+    k,dk),param_tp_final,opts_new);
+[m_tp,s2_tp,cov_tp,lb_tp,ub_tp] = funcTP(w_tp_final,xtr,ytr,k,xte);
+
+% build a struct class variable
+TPpredictor.mean = m_tp;
+TPpredictor.variance = s2_tp;
+TPpredictor.covariance = cov_tp;
+TPpredictor.lb = lb_tp;
+TPpredictor.ub = ub_tp;
+TPpredictor.nlml = nlml_tp_final;
+
+TPpredictor.hyp.nv = exp(w_tp_final(1));
+TPpredictor.hyp.sn = exp(w_tp_final(2));
+TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
+TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
+
+if d_target>1
+    TPpredictor.hyp.diag_Omega = exp(w_tp_final(n_parameter+2+1:...
+        n_parameter+...
+        2+d_target));
+    TPpredictor.hyp.non_diag_Omega = w_tp_final(n_parameter+2 +...
+        d_target+1:end);
+end
 
 end
+
+%% implement both GPR/MV-GPR and TPR/MV-TPR
+function [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, k, dk, ...
+    para_init,n_parameter,opts_new)
+% [n_input, d_input] = size(xtr); % length and dimension of training input
+d_target =size(ytr,2); % dimension of target
+opts = optimset('GradObj','on','display','off');
+nlml_gp = Inf; nlml_tp= Inf;
+numinit = 10; sn = 0.1; % sn is the noise level
+
+% Select the model solve function based on the dimension of targets
+if d_target ==1                        % single output GP/TP regression
+    funcGP = @gp_solve_gpml; funcTP = @tp_solve_gpml;
+    for j=1:numinit
+        %% GP part
+        kernel_gp = para_init(xtr, ytr);
+        param_gp = log([sn; kernel_gp]');
+        
+        % Optimization
+        [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
+            param_gp,opts);
+        
+        if (nlml_gp_new < nlml_gp)
+            param_gp_final = param_gp ;
+            nlml_gp = nlml_gp_new;
+        end
+    
+        %% TP part
+        kernel_tp = para_init(xtr, ytr);
+        nv = nv_init(xtr, ytr);
+        param_tp = log([nv;sn;kernel_tp]');
+        % Optimization
+        [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
+            param_tp,opts);
+        
+        if (nlml_tp_new < nlml_tp)
+            param_tp_final = param_tp;
+            nlml_tp = nlml_tp_new;
+        end
+    end
+    
+else                                    % multiple output regression
+    
+    funcGP = @mvgp_solve_gpml; funcTP = @mvtp_solve_gpml;
+    for j=1:numinit
+        %% MV-GP part
+        kernel_gp = para_init(xtr, ytr);
+        %----------------------------------------------------------
+        [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
+        %----------------------------------------------------------
+        param_gp = log([sn; kernel_gp;diag_Omega_gp;...
+            non_diag_Omega_gp]);
+        %----------------------------------------------------------
+        % Optimization
+        [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
+            param_gp,opts);
+        
+        if (nlml_gp_new < nlml_gp)
+            param_gp_final = param_gp;
+            nlml_gp = nlml_gp_new;
+        end
+        
+        %% MV-TP part
+        kernel_tp = para_init(xtr, ytr);
+        nv = nv_init(xtr, ytr);
+        %------------------------------------------------------------------
+        [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
+        %------------------------------------------------------------------
+        param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
+            non_diag_Omega_tp]);
+        %------------------------------------------------------------------
+        % Optimization
+        [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
+            param_tp,opts);
+        
+        if (nlml_tp_new < nlml_tp)
+            param_tp_final = param_tp;
+            nlml_tp = nlml_tp_new;
+        end
+    end
+end
+
+%% GP/MV-GP part
+[w_gp_final,nlml_gp_final] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk),...
+    param_gp_final,...
+    opts_new);
+[m_gp,s2_gp,cov_gp,lb_gp,ub_gp] = funcGP(w_gp_final,xtr,ytr,k,xte);
+% build a struct class variable
+GPpredictor.mean = m_gp;
+GPpredictor.variance = s2_gp;
+GPpredictor.covariance = cov_gp;
+GPpredictor.lb = lb_gp;
+GPpredictor.ub = ub_gp;
+GPpredictor.nlml = nlml_gp_final;
+
+GPpredictor.hyp.sn = exp(w_gp_final(1));
+GPpredictor.hyp.ell = exp(w_gp_final(2:n_parameter));
+GPpredictor.hyp.sf = exp(w_gp_final(n_parameter+1));
+
+if d_target>1
+    GPpredictor.hyp.diag_Omega = exp(w_gp_final(n_parameter+1+1 : ...
+        n_parameter +1+d_target));
+    GPpredictor.hyp.non_diag_Omega = w_gp_final(n_parameter+1 +...
+        d_target+1:end);
+end
+
+%% TP/MV-TP part
+[w_tp_final,nlml_tp_final] = fminunc(@(w) funcTP(w,xtr,ytr,...
+    k,dk),param_tp_final,opts_new);
+[m_tp,s2_tp,cov_tp,lb_tp,ub_tp] = funcTP(w_tp_final,xtr,ytr,k,xte);
+
+% build a struct class variable
+TPpredictor.mean = m_tp;
+TPpredictor.variance = s2_tp;
+TPpredictor.covariance = cov_tp;
+TPpredictor.lb = lb_tp;
+TPpredictor.ub = ub_tp;
+TPpredictor.nlml = nlml_tp_final;
+
+TPpredictor.hyp.nv = exp(w_tp_final(1));
+TPpredictor.hyp.sn = exp(w_tp_final(2));
+TPpredictor.hyp.ell = exp(w_tp_final(3:n_parameter+1));
+TPpredictor.hyp.sf = exp(w_tp_final(n_parameter+2));
+
+if d_target>1
+    TPpredictor.hyp.diag_Omega = exp(w_tp_final(n_parameter+2+1 : ...
+        n_parameter+2+d_target));
+    TPpredictor.hyp.non_diag_Omega = w_tp_final(n_parameter+2 +...
+        d_target+1:end);
+end
+
+end
+
