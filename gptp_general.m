@@ -1,4 +1,4 @@
-function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
+function [varargout] = gptp_general(xtr,ytr,xte,sn,covfunc,para_init,option)
 
 % GPTP_GENERAL -- Solve GP/TP regression for both single output and
 % multiple a output problem.
@@ -13,7 +13,7 @@ function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
 %   cov     - Covariance function (Using the covariance functions in gpml toolbox)
 % para_init - initialisation of hyperparameters for the specific kernel
 %   option  - 'GP','TP','GPVS','TPVS',and 'All'
-%
+%   sn      - noise level
 % Out :
 %
 %   GPpredictor    - GP predictor, including predicted mean,
@@ -41,22 +41,25 @@ function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
 %   likelihood, the degree of freedom, and hyperparameters in the kernel.
 %
 % Usage:
-%       GPpredictor =gptp_general(xtr,ytr,xte,cov,para_init,"GP");
-%   or: TPpredictor =gptp_general(xtr,ytr,xte,cov,para_init,"TP");
-%   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte);
-%   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov);
-%   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,'cov,para_init);
-% % or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"VS");')
-%   or: [indGPpredictor, mvGPpredictor] =gptp_general(xtr,ytr,xte,cov,
+%       GPpredictor =gptp_general(xtr,ytr,xte,sn,cov,para_init,"GP");
+%   or: TPpredictor =gptp_general(xtr,ytr,xte,sn,cov,para_init,"TP");
+%   r: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte);
+%   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,sn);
+%   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,sn,cov);
+%   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,sn,cov,para_init);
+% % or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,sn,cov,
+%                                                    para_init,"VS",);')
+%   or: [indGPpredictor, mvGPpredictor] =gptp_general(xtr,ytr,xte,sn,cov,
 %                                                    para_init,"GPVS");
-%   or: [mvGPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"GPVS");
-%   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,ytr,xte,cov,
+%   or: [mvGPpredictor] =gptp_general(xtr,ytr,xte,sb,cov,para_init,"GPVS");
+%   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,ytr,xte,sn,cov,
 %                                                    para_init,"TPVS");
-%   or: [mvTPpredictor] =gptp_general(xtr,ytr,xte,cov, para_init,"TPVS");
+%   or: [mvTPpredictor] =gptp_general(xtr,ytr,xte,cov, sn, para_init,"TPVS");
 %   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,indTPpredictor] =
-%           gptp_general(xtr,ytr,xte,cov,para_init,"All");
+%           gptp_general(xtr,ytr,xte,sn,cov,para_init,"All");
 %
 % Copyright: Magica Chen 2018/10/28
+%     Modified on 2019/07/16
 %     email: sxtpy2010@gmail.com
 %
 % Reference :
@@ -65,20 +68,21 @@ function [varargout] = gptp_general(xtr,ytr,xte,covfunc,para_init,option)
 %        Prediction." arXiv preprint arXiv:1703.04455 (2017).
 
 %% Variables check
-if nargin < 3 || nargin > 6
-    disp('Usage: GPpredictor =gptp_general(xtr,ytr,xte,cov,para_init,"GP");')
-    disp('   or: TPpredictor =gptp_general(xtr,ytr,xte,cov,para_init,"TP");')
+if nargin < 3 || nargin > 7
+    disp('Usage: GPpredictor =gptp_general(xtr,ytr,xte,sn,cov,para_init,"GP");')
+    disp('   or: TPpredictor =gptp_general(xtr,ytr,xte,sn,cov,para_init,"TP");')
     disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte);')
-    disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov);')
+    disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,sn);')
+    disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,sn,cov);')
     disp(['   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,',...
-        'cov,para_init);'])
+        'sn,cov,para_init);'])
     %    disp('   or: [GPpredictor, TPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"VS");')
     disp(['   or: [indGPpredictor, mvGPpredictor] =gptp_general(xtr,',...
-        'ytr,xte,cov,para_init,"GPVS");'])
+        'ytr,xte,sn,cov,para_init,"GPVS");'])
     disp(['   or: [indTPpredictor, mvTPpredictor] =gptp_general(xtr,',...
-        'ytr,xte,cov,para_init,"TPVS");'])
+        'ytr,xte,sn,cov,para_init,"TPVS");'])
     disp(['   or: [mvGPpredictor, mvTPpredictor, indGPpredictor,',...
-        'indTPpredictor] =gptp_general(xtr,ytr,xte,cov,para_init,"All");'])
+        'indTPpredictor] =gptp_general(xtr,ytr,xte,sn,cov,para_init,"All");'])
     return
 end
 
@@ -95,6 +99,7 @@ end
 
 %% default input
 if nargin ==3         % if there is no specific kernel, we use SE as default
+    sn = 0.1;         % default noise level
     if d_input ==1
         covfunc = @covSEiso;  % SEiso for 1-d training input
     else
@@ -104,7 +109,16 @@ if nargin ==3         % if there is no specific kernel, we use SE as default
 end
 
 if nargin ==4
-    para_init = @SE_init;
+    if d_input ==1
+        covfunc = @covSEiso;  % SEiso for 1-d training input
+    else
+        covfunc = @covSEard;  % SEard for multi-d training input
+    end
+    para_init = @SE_init; % SEard for multi-d training input
+end
+
+if nargin ==5
+    para_init = @SE_init; % SEard for multi-d training input
 end
 
 n_parameter = para_init(xtr, ytr, 1);
@@ -123,24 +137,24 @@ optim_new = optimset('GradObj','on','display','off','MaxIter',500);
 %     'off','MaxIter',250);
 
 %% Default function includes both GP and TP (or MV-GP and MV-TP)
-if nargin < 6
+if nargin < 7
     [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,k,dk,...
-        para_init, n_parameter,optim_new);
+        para_init, n_parameter,optim_new, sn);
     varargout = {GPpredictor, TPpredictor};
 end
 %% According to selected option
-if nargin == 6
+if nargin == 7
     switch option
         case 'GP'
             % only perform GPR
             GPpredictor = gp_part(xtr, ytr, xte,k,dk, para_init, ...
-                n_parameter,optim_new);
+                n_parameter,optim_new, sn);
             varargout = {GPpredictor};
             
         case 'TP'
             % only perform TPR
             TPpredictor = tp_part(xtr, ytr, xte, k,dk,para_init, ...
-                n_parameter,optim_new);
+                n_parameter,optim_new, sn);
             varargout = {TPpredictor};
             
             %         case 'VS'
@@ -148,13 +162,13 @@ if nargin == 6
             %             % comparison of GPR and TPR, otherwise this is a comparison of
             %             % MV-GPR and MV-TPR
             %             [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte,n_input,...
-            %                 d_input,d_target,k,dk,para_init,nv_init,n_parameter,optim_new);
+            %                 d_input,d_target,k,dk,para_init,nv_init,n_parameter,optim_new, sn);
             %             varargout = {GPpredictor, TPpredictor};
             
         case 'GPVS'
             if d_target > 1
                 mvGPpredictor = gp_part(xtr, ytr, xte, k,dk,para_init, ...
-                    n_parameter,optim_new);
+                    n_parameter,optim_new, sn);
                 if nargout == 1
                     varargout = {mvGPpredictor};
                 else
@@ -162,7 +176,8 @@ if nargin == 6
                     
                     for i = 1:d_target
                         indGPpredictor{i} = gp_part(xtr, ytr(:,i),xte,...
-                            d_input,1,k,dk,para_init, n_parameter,optim_new);
+                            d_input,1,k,dk,para_init, n_parameter,...
+                            optim_new, sn);
                     end
                     varargout = {indGPpredictor, mvGPpredictor};
                 end
@@ -173,7 +188,7 @@ if nargin == 6
         case 'TPVS'
             if d_target > 1
                 mvTPpredictor = tp_part(xtr, ytr, xte,k,dk,para_init,...
-                    n_parameter,optim_new);
+                    n_parameter,optim_new, sn);
                 if nargout == 1
                     varargout = {mvTPpredictor};
                 else
@@ -182,7 +197,7 @@ if nargin == 6
                     for i = 1:d_target
                         indTPpredictor{i} = tp_part(xtr,ytr(:,i),xte,...
                             n_input,d_input,1,k,dk,para_init,n_parameter,...
-                            optim_new);
+                            optim_new, sn);
                     end
                     varargout = {indTPpredictor, mvTPpredictor};
                 end
@@ -197,43 +212,45 @@ if nargin == 6
             % MV-GPR and MV-TPR.
             if d_target > 1
                 [mvGPpredictor, mvTPpredictor] = gptp_part(xtr, ytr, xte, ...
-                    k,dk,para_init,n_parameter, optim_new);
+                    k,dk,para_init,n_parameter, optim_new, sn);
                 if nargout == 2
                     varargout = {mvGPpredictor, mvTPpredictor};
-                else     
+                else
                     indGPpredictor = cell(1,d_target); % allocate space
-                    indTPpredictor = cell(1,d_target);               
+                    indTPpredictor = cell(1,d_target);
                     for i = 1:d_target
                         [indGPpredictor{i}, indTPpredictor{i}] = gptp_part(...
-                            xtr,ytr(:,i),xte,k,dk, para_init,n_parameter,optim_new);
-                    end                    
+                            xtr,ytr(:,i),xte,k,dk, para_init,n_parameter,...
+                            optim_new, sn);
+                    end
                     varargout = {mvGPpredictor, mvTPpredictor,indGPpredictor,...
                         indTPpredictor};
                 end
             else
                 [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, ...
-                    k,dk,para_init,n_parameter, optim_new );
+                    k,dk,para_init,n_parameter, optim_new, sn);
                 varargout = {GPpredictor, TPpredictor};
-            end   
+            end
     end
 end
 end
 
 %% implement GPR/MV-GPR only
 function GPpredictor = gp_part(xtr, ytr, xte, k, dk, para_init, ...
-    n_parameter,opts_new)
+    n_parameter,opts_new, sn)
 %% Global part
 % [n_input, d_input] = size(xtr); % length and dimension of training input
 d_target =size(ytr,2); % dimension of target
 opts = optimset('GradObj','on','display','off');
 nlml_gp= Inf;
-numinit = 10; sn = 0.1; % sn is the noise level
+numinit = 10;
 
 if d_target ==1                            % 1 output regression
     funcGP = @gp_solve_gpml;
     for j=1:numinit
         kernel_gp = para_init(xtr, ytr);
         param_gp = log([sn; kernel_gp]');
+
         % Optimization
         [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
             param_gp,opts);
@@ -251,7 +268,11 @@ else
         %------------------------------------------------------------------
         [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
         %------------------------------------------------------------------
-        param_gp = log([sn; kernel_gp;diag_Omega_gp;...
+        % param_gp = log([sn; kernel_gp;diag_Omega_gp;...
+        %    non_diag_Omega_gp]);
+        
+        % For parameter estimiation experiements only
+        param_gp = log([sn*(1 + 0.1*rand); kernel_gp;diag_Omega_gp;...
             non_diag_Omega_gp]);
         %------------------------------------------------------------------
         % Optimization
@@ -292,13 +313,13 @@ end
 
 %% implement TPR/MV-TPR only
 function TPpredictor = tp_part(xtr, ytr, xte, k,dk,para_init,...
-    n_parameter,opts_new)
+    n_parameter,opts_new,sn)
 %% Global part
 % [n_input, d_input] = size(xtr); % length and dimension of training input
 d_target =size(ytr,2); % dimension of target
 opts = optimset('GradObj','on','display','off');
 nlml_tp= Inf;
-numinit = 10; sn = 0.1; % sn is the noise level
+numinit = 10;
 %%
 if d_target ==1
     funcTP = @tp_solve_gpml;
@@ -306,7 +327,6 @@ if d_target ==1
         kernel_tp = para_init(xtr, ytr);
         nv = nv_init(xtr, ytr);
         param_tp = log([nv;sn;kernel_tp]');
-        
         % Optimization
         [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...
             param_tp,opts);
@@ -325,7 +345,14 @@ else
         %------------------------------------------------------------------
         [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
         %------------------------------------------------------------------
-        param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
+%         param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
+%             non_diag_Omega_tp]);
+                
+        % For parameter estimiation experiements only
+        param_tp = log([nv;
+            sn*(1 + 0.1*rand);
+            kernel_tp;
+            diag_Omega_tp;
             non_diag_Omega_tp]);
         %------------------------------------------------------------------
         % Optimization
@@ -368,12 +395,12 @@ end
 
 %% implement both GPR/MV-GPR and TPR/MV-TPR
 function [GPpredictor, TPpredictor] = gptp_part(xtr, ytr, xte, k, dk, ...
-    para_init,n_parameter,opts_new)
+    para_init,n_parameter,opts_new,sn)
 % [n_input, d_input] = size(xtr); % length and dimension of training input
 d_target =size(ytr,2); % dimension of target
 opts = optimset('GradObj','on','display','off');
 nlml_gp = Inf; nlml_tp= Inf;
-numinit = 10; sn = 0.1; % sn is the noise level
+numinit = 10;
 
 % Select the model solve function based on the dimension of targets
 if d_target ==1                        % single output GP/TP regression
@@ -391,7 +418,7 @@ if d_target ==1                        % single output GP/TP regression
             param_gp_final = param_gp ;
             nlml_gp = nlml_gp_new;
         end
-    
+        
         %% TP part
         kernel_tp = para_init(xtr, ytr);
         nv = nv_init(xtr, ytr);

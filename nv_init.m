@@ -29,6 +29,6 @@ n_input = size(xtr, 2);
 sigma = min(std(ytr, 0, 1));
 nv = 2 + unifrnd(0, sigma)/n_input;  % initial nu is between 2 and the number of data
 
-% % For parameter estimiation experiements only
-% nv = 3 + unifrnd(-0.01,0.01);  % initial nu is between 2 and the number of data
+% For parameter estimiation experiements only
+% nv = 3 + unifrnd(-0.8,0.8);  % initial nu is between 2 and the number of data
 end

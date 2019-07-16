@@ -40,12 +40,15 @@ end
 value_non_diag = randn(d_target*(d_target-1)/2,1) + non_diag;
 non_diag_Omega = exp(value_non_diag);
 
-% % For parameter estimation experiment only
+% For parameter estimation experiment only
 % value_diag = unifrnd(-0.01, 0.01, d_target,1) + 1*ones(d_target,1);
 % diag_Omega = exp(value_diag);             % diagonal part
 % 
 % value_non_diag = randn(d_target*(d_target-1)/2,1) + log(0.8*ones(...
 %     d_target*(d_target-1)/2,1));
 % non_diag_Omega = exp(value_non_diag);
+%
+% diag_Omega = 1 + 0.02* rand(2,1);
+% non_diag_Omega = 0.8 + 0.01 * rand();
 end
 

@@ -42,9 +42,11 @@ end              % report number of parameters
 n_parameter = 1 + d_input*1;    % The number of parameter in the kernel
 hyp = rand(n_parameter,1);      % This is the most commonly-used method
 
-% % For parameter estimiation experiements only
+% For parameter estimiation experiements only
 % n_parameter = 1 + d_input*1;    % The number of parameter in the kernel
 % hyp = rand(n_parameter,1);      % This is the most commonly-used method
 % hyp(2) = 0.38;
+% 
+% hyp = [0.5 ; 2.5] + [0.1*rand(); rand()];
 end
 
