@@ -16,7 +16,7 @@ These four functions are used to solve GPR, TPR, MV-GPR and MV-TPR, respectively
 ### Initial hyperparameter functions
 * BE CAREFUL TO these initialisation funciton: **nv_init.m, Omega_init.m, SE_init.m, and nu (in TPR and MV-TPR)**. These functions are used to initialise parameters. These functions play an important role in the final results, if you would like to obtain considerable results, **PLEASE USE YOUR OWN FUNCTIONS** according to **YOUR OWN EXPERT OPINIONS using training data**.
 
-### Ulti functions
+### Utility functions
 * MultiGamma.m and vec2mat_diag.m are two small functions, which are used in the mvgp_solve_gpml.m and mvtp_solve_gpml.m.
 * Omega(in MV-GPR and MV-TPR), and hyperparameters in the specific kernel. 
 
@@ -25,7 +25,7 @@ If possible, you should write your own initialisation function.
 
 **Do not forget to replace SE_init.m by the corresponding kernel initialation function if you write a new for yourself.**
 
-### Cov and ulti function
+### Cov and utility function
 This tookkit is based on GPML Matlab Code http://www.gaussianprocess.org/gpml/code/matlab/doc/, version 3.6.
 
 covSEiso.m, covSEard.m and sq_dist.m are collected from GPML Matlab Code. 
