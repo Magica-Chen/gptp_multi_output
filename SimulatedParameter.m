@@ -54,10 +54,16 @@ end
 for i = 1: N_repeats
     y_noise_tp = mv_gptp_sample(cov_col,cov_row,x, hyp_init, nv);
     % This is parameter estimation example
+<<<<<<< HEAD
+    ytr_tp = y_noise_tp + normrnd(0, noise, size(y_noise_tp));
+
+    mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, kernel, init_func, "TPVS");
+=======
     ytr_tp = y_noise_tp + normrnd(0, sqrt(noise), size(y_noise_tp));
 
     mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, noise, kernel, ...
         init_func, "TPVS");
+>>>>>>> 8f9e07bafd5027fb1f312c53c1ff694abf03159b
     yte_tp{i} = y_noise_tp;
 end
 
@@ -82,23 +88,46 @@ phi22_tp = zeros(N_repeats,1);
 nv_tp = zeros(N_repeats,1);
 
 for i = 1: N_repeats
+<<<<<<< HEAD
+%     sn_gp(i) = mGPpredictor{i}.hyp.sn;
+%     sf_gp(i) = mGPpredictor{i}.hyp.sf;
+%     ell_gp(i) = mGPpredictor{i}.hyp.ell;
+%     psi12_gp(i) = mGPpredictor{i}.hyp.non_diag_Omega;
+%     phi11_gp(i) = mGPpredictor{i}.hyp.diag_Omega(1);
+%     phi22_gp(i) = mGPpredictor{i}.hyp.diag_Omega(2);    
+=======
     sn_gp(i) = mGPpredictor{i}.hyp.sn;
     sf_gp(i) = mGPpredictor{i}.hyp.sf;
     ell_gp(i) = mGPpredictor{i}.hyp.ell;
     psi12_gp(i) = exp(mGPpredictor{i}.hyp.non_diag_Omega);
     phi11_gp(i) = mGPpredictor{i}.hyp.diag_Omega(1);
     phi22_gp(i) = mGPpredictor{i}.hyp.diag_Omega(2);    
+>>>>>>> 8f9e07bafd5027fb1f312c53c1ff694abf03159b
     
     sn_tp(i) = mTPpredictor{i}.hyp.sn;
     sf_tp(i) = mTPpredictor{i}.hyp.sf;
     ell_tp(i) = mTPpredictor{i}.hyp.ell;
+<<<<<<< HEAD
+    psi12_tp(i) = mTPpredictor{i}.hyp.non_diag_Omega;
+=======
     psi12_tp(i) = exp(mTPpredictor{i}.hyp.non_diag_Omega);
+>>>>>>> 8f9e07bafd5027fb1f312c53c1ff694abf03159b
     phi11_tp(i) = mTPpredictor{i}.hyp.diag_Omega(1);
     phi22_tp(i) = mTPpredictor{i}.hyp.diag_Omega(2);
     nv_tp(i) = mTPpredictor{i}.hyp.nv;
     
 end
 
+<<<<<<< HEAD
+% pM_GP = [ median(sn_gp), median(sf_gp), ...
+%     median(ell_gp),median(phi11_gp), ...
+%     median(phi22_gp),median(psi12_gp)]
+% 
+% pMAE_GP = [ median(abs(noise - sn_gp))/noise, median(abs(sf - sf_gp))/sf, ...
+%     median(abs(ell - ell_gp))/ell,median(abs(phi11 - phi11_gp))/phi11, ...
+%     median(abs(phi22 - phi22_gp))/phi22, median(abs(psi12 -psi12_gp))/psi12]
+
+=======
 pM_GP = [ median(sn_gp), median(sf_gp), ...
     median(ell_gp),median(phi11_gp), ...
     median(phi22_gp),median(psi12_gp)];
@@ -107,14 +136,23 @@ pMAE_GP = [ median(abs(noise - sn_gp))/noise, median(abs(sf - sf_gp))/sf, ...
     median(abs(ell - ell_gp))/ell,median(abs(phi11 - phi11_gp))/phi11, ...
     median(abs(phi22 - phi22_gp))/phi22, median(abs(psi12 -psi12_gp))/psi12]'
 
+>>>>>>> 8f9e07bafd5027fb1f312c53c1ff694abf03159b
 
 pM_TP = [ median(sn_tp), median(sf_tp), ...
     median(ell_tp),median(phi11_tp), ...
     median(phi22_tp),median(psi12_tp), ...
+<<<<<<< HEAD
+    median(nv_tp)]
+=======
     median(nv_tp)];
+>>>>>>> 8f9e07bafd5027fb1f312c53c1ff694abf03159b
 
 pMAE_TP = [ median(abs(noise - sn_tp))/noise, median(abs(sf - sf_tp))/sf, ...
     median(abs(ell - ell_tp))/ell,median(abs(phi11 - phi11_tp))/phi11, ...
     median(abs(phi22 - phi22_tp))/phi22, median(abs(psi12 -psi12_tp))/psi12, ...
+<<<<<<< HEAD
+    median(abs(nv - nv_tp))/nv]
+=======
     median(abs(nv - nv_tp))/nv]'
+>>>>>>> 8f9e07bafd5027fb1f312c53c1ff694abf03159b
 

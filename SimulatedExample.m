@@ -1,7 +1,7 @@
 % Example code for multi-output prediction using some simulated data (It is
 % not the code for the following paper, there are some sight differences)
 %
-% Copyright: Magica Chen 2018/10/28
+% Copyright: Magica Chen 2019/07/16
 %     email: sxtpy2010@gmail.com
 %
 % Reference :
@@ -13,27 +13,20 @@ clc
 clear
 close all
 %% Global variable
-
- seeds = 189;  rng(seeds); gpORtp = 'GP'; % for GP noise
+seeds = 17; rng(seeds);  gpORtp = 'GP'; % for GP noise
+% seeds = 189;  rng(seeds); gpORtp = 'GP'; % for GP noise
 % seeds = 31;  rng(seeds); gpORtp = 'TP'; % for TP noise
 
 % Sample points
 N_sample = 100;
-
-% train_series = [1:3:floor(0.72*N_sample)  ...
-%     floor(0.86*N_sample):3:N_sample]; % split the training and test
-
 train_series = [1:3:floor(0.45*N_sample)  ...
     floor(0.65*N_sample):3:N_sample]; % split the training and test
 
-cov_row = [1 -0.8;-0.8 1];
-hyp_init = log([1.1,2]);
-nu =3; % Only for t-disribution
+cov_row = [1 0.25; 0.25 1];
+hyp_init = log([1.001,5]); 
+nu =3; % only for t process
 
-%----------------------------------------------------------------
-% Generate noise
-seeds = 17;
-rng(seeds)
+%%  Generate noise
 % if you would like to achieve the same result for any run of this code
 % please set this random seed
 
@@ -51,11 +44,6 @@ switch gpORtp
         y_noise = y_noise_tp;
 end
 %%  Generate samples
-
-
-% y1 = 2.*cos(x).* (x);  %+ 0.08*randn(1,n);
-% y2 = 1.5.*cos(x + 0.9).*(x);    %+ 0.06*randn(1,n);
-
 y1 = 2*cos(x).* (x) ;           
 y2 = 1.5.*cos(x +pi/5).*(x);      
 
@@ -75,7 +63,7 @@ yte = [y1 y2];
 kernel = @covSEiso; init_func = @SE_init;
 
 [mGPpredictor, mTPpredictor, GPpredictor, TPpredictor] = gptp_general(...
-    xtr, ytr, xte, kernel, init_func, 'All');
+    xtr, ytr, xte, 0.1, kernel, init_func, 'All');
 
 %%  error measure
 
@@ -113,118 +101,3 @@ set(gca,'XTick',1:1:2)
 set(gca,'XtickLabel',{'y_1','y_2'})
 title('RMSE')
 
-%%
-% multi
-figure(2);
-subplot(241)
-plot(xte(:,1),mGPpredictor.mean(:,1),'b')
-hold on
-% plot(xte(:,1),yte(:,1),'r:')
-plot(xte,yte(:,1),'m')
-hold on
-plot(xtr(:,1),ytr(:,1),'ro')
-hold on
-plot(xte(:,1),mGPpredictor.lb(:,1),'b:')
-hold on
-plot(xte(:,1),mGPpredictor.ub(:,1),'b:')
-title('MV-GP, y_1')
-% legend('Prediction','True function','Observation','95% Confidence Interval')
-
-
-subplot(242)
-plot(xte(:,1),mTPpredictor.mean(:,1),'b')
-hold on
-% plot(xte(:,1),yte(:,1),'r:')
-plot(xte,yte(:,1),'m')
-hold on
-plot(xtr(:,1),ytr(:,1),'ro')
-hold on
-plot(xte(:,1),mTPpredictor.lb(:,1),'b:')
-hold on
-plot(xte(:,1),mTPpredictor.ub(:,1),'b:')
-title('MV-TP, y_1')
-
-subplot(245)
-plot(xte(:,1),mGPpredictor.mean(:,2),'b')
-hold on
-% plot(xte(:,1),yte(:,2),'r:')
-plot(xte,yte(:,2),'m')
-hold on
-plot(xtr(:,1),ytr(:,2),'ro')
-hold on
-plot(xte(:,1),mGPpredictor.lb(:,2),'b:')
-hold on
-plot(xte(:,1),mGPpredictor.ub(:,2),'b:')
-title('MV-GP, y_2')
-
-subplot(246)
-plot(xte(:,1),mTPpredictor.mean(:,2),'b')
-hold on
-% plot(xte(:,1),yte(:,2),'r:')
-plot(xte,yte(:,2),'m')
-hold on
-plot(xtr(:,1),ytr(:,2),'ro')
-hold on
-plot(xte(:,1),mTPpredictor.lb(:,2),'b:')
-hold on
-plot(xte(:,1),mTPpredictor.ub(:,2),'b:')
-title('MV-TP, y_2')
-
-% indep
-subplot(243)
-plot(xte(:,1),GPpredictor{1}.mean,'b')
-hold on
-% plot(xte(:,1),yte(:,1),'r:')
-plot(xte,yte(:,1),'m')
-hold on
-plot(xtr(:,1),ytr(:,1),'ro')
-hold on
-plot(xte(:,1),GPpredictor{1}.lb,'b:')
-hold on
-plot(xte(:,1),GPpredictor{1}.ub,'b:')
-title('GP, y_1')
-
-subplot(244)
-plot(xte(:,1),TPpredictor{1}.mean(:,1),'b')
-hold on
-% plot(xte(:,1),yte(:,1),'r:')
-plot(xte,yte(:,1),'m')
-hold on
-plot(xtr(:,1),ytr(:,1),'ro')
-hold on
-plot(xte(:,1),TPpredictor{1}.lb,'b:')
-hold on
-plot(xte(:,1),TPpredictor{1}.ub,'b:')
-title('TP, y_1')
-legend('Prediction','True function','Observation','95% Confidence Interval')
-legend('boxoff')
-
-subplot(247)
-plot(xte(:,1),GPpredictor{2}.mean,'b')
-hold on
-% plot(xte(:,1),yte(:,2),'r:')
-plot(xte,yte(:,2),'m')
-hold on
-plot(xtr(:,1),ytr(:,2),'ro')
-hold on
-plot(xte(:,1),GPpredictor{2}.lb,'b:')
-hold on
-plot(xte(:,1),GPpredictor{2}.ub,'b:')
-title('GP, y_2')
-
-subplot(248)
-plot(xte(:,1),TPpredictor{2}.mean,'b')
-hold on
-% plot(xte(:,1),yte(:,2),'r:')
-plot(xte,yte(:,2),'m')
-hold on
-plot(xtr(:,1),ytr(:,2),'ro')
-hold on
-plot(xte(:,1),TPpredictor{2}.lb,'b:')
-hold on
-plot(xte(:,1),TPpredictor{2}.ub,'b:')
-title('TP, y_2')
-legend('Prediction','True function','Observation','95% Confidence Interval')
-legend('boxoff')
-
-set(gcf,'Position',[213 355  1383  612]);
