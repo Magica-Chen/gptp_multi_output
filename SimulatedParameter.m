@@ -1,6 +1,9 @@
 % Example code for multi-output prediction using some simulated data (It is
 % not the code for the following paper, there are some sight differences)
 %
+% You need to modify Omega_init.m, SE_init.m, and nv_init.m to obtain the
+% best results for parameter simulation
+%
 % Written by: Magica Chen 2018/10/28
 %     email: sxtpy2010@gmail.com
 %
