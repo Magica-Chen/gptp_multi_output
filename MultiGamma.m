@@ -40,8 +40,8 @@ if nargin < 2 || nargin >3
 end
 
 s = size(lambda);
-if sum(sum(real(lambda)>0.5*(n-1))) < prod(s)
-    error('Re(lambda) must bigger than 1/2*(n-1)')
+if sum(sum(real(lambda)>=0.5*(n-1))) < prod(s)
+    error('Re(lambda) must bigger than 0.5*(n-1)')
 end
 
 
