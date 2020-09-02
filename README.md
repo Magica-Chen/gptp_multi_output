@@ -13,7 +13,7 @@ This toolkit is used to implement multivariate Gaussian process regression (MV-G
 The main function is gptp_general.m. It can return GPR, TPR, MV-GPR, MV-TPR and their comparisons.
 There are four useful sub-functions:
 * gp_solve_gpml.m 
-* tp_solve_gpml.m，
+* tp_solve_gpml.m
 * mvgp_solve_gpml.m
 * mvtp_solve_gpml.m
 
@@ -39,7 +39,7 @@ covSEiso.m, covSEard.m and sq_dist.m are collected from GPML Matlab Code.
 covSEiso and covSEard are used as default covariance function. More covariance functions can be selected in the GPML Code toolbox. 
 
 
-## History
+## Log
 ### ----2018/01/19-----
 
 File added: SimulatedExample.m
@@ -56,12 +56,12 @@ This file is to generate a sample from GP or TP with specificed row and column c
 Add mv_gptp_sample.m file
 This file is to generate a sample from MV-GP or MV-TP with specificed row and column covariance and zero mean function.
 
-## Note
+## Remarks
 This code is proof-of-concept, not optimized for speed.
 
 ## Reference 
 
 [1] Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." Neurocomputing 275 (2018): 1702-1710.
 
-[2] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student $-t $ Process Regression for Multi-output Prediction." arXiv preprint arXiv:1703.04455 (2017).
+[2] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student $-t $ Process Regression for Multi-output Prediction." Neural Computing and Applications 32.8 (2020): 3005-3028..
 
