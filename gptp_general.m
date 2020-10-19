@@ -268,12 +268,12 @@ else
         %------------------------------------------------------------------
         [diag_Omega_gp,non_diag_Omega_gp] = Omega_init(xtr, ytr);
         %------------------------------------------------------------------
-        % param_gp = log([sn; kernel_gp;diag_Omega_gp;...
-        %    non_diag_Omega_gp]);
+        param_gp = log([sn; kernel_gp;diag_Omega_gp;...
+           non_diag_Omega_gp]);
         
-        % For parameter estimiation experiements only
-        param_gp = log([sn*(1 + 0.1*rand); kernel_gp;diag_Omega_gp;...
-            non_diag_Omega_gp]);
+%         % For parameter estimiation experiements only
+%         param_gp = log([sn*(1 + 0.1*rand); kernel_gp;diag_Omega_gp;...
+%             non_diag_Omega_gp]);
         %------------------------------------------------------------------
         % Optimization
         [~,nlml_gp_new] = fminunc(@(w) funcGP(w,xtr,ytr,k,dk), ...
@@ -345,15 +345,15 @@ else
         %------------------------------------------------------------------
         [diag_Omega_tp,non_diag_Omega_tp] = Omega_init(xtr, ytr);
         %------------------------------------------------------------------
-%         param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
-%             non_diag_Omega_tp]);
-                
-        % For parameter estimiation experiements only
-        param_tp = log([nv;
-            sn*(1 + 0.1*rand);
-            kernel_tp;
-            diag_Omega_tp;
+        param_tp = log([nv;sn; kernel_tp;diag_Omega_tp;...
             non_diag_Omega_tp]);
+                
+%         % For parameter estimiation experiements only
+%         param_tp = log([nv;
+%             sn*(1 + 0.1*rand);
+%             kernel_tp;
+%             diag_Omega_tp;
+%             non_diag_Omega_tp]);
         %------------------------------------------------------------------
         % Optimization
         [~,nlml_tp_new] = fminunc(@(w) funcTP(w,xtr,ytr,k,dk), ...

@@ -60,7 +60,7 @@ for i = 1: N_repeats
     ytr_tp = y_noise_tp + normrnd(0, sqrt(noise), size(y_noise_tp));
 
     mTPpredictor{i} = gptp_general(xtr, ytr_tp, xte, noise, kernel, ...
-        init_func, "TPVS");
+        init_func, 'TPVS');
     yte_tp{i} = y_noise_tp;
 end
 
