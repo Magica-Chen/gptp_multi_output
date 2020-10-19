@@ -7,56 +7,61 @@
 
 This toolkit is used to implement multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR). 
 
-## Code structure
+## Setup
 
-### Main functions
-The main function is gptp_general.m. It can return GPR, TPR, MV-GPR, MV-TPR and their comparisons.
-There are four useful sub-functions:
-* gp_solve_gpml.m 
-* tp_solve_gpml.m
-* mvgp_solve_gpml.m
-* mvtp_solve_gpml.m
+This toolkit is based on GPML MATLAB Code http://www.gaussianprocess.org/gpml/code/matlab/doc/, version 3.6.
+
+You have to run `startup.m` in GPML 3.6 first, and then run `add_path.m` in this toolkit.
+
+## Code Structure
+
+The main function is` gptp_general.m`, which relies on four functions in `solver` folder.
+
+### solver
 
 These four functions are used to solve GPR, TPR, MV-GPR and MV-TPR, respectively.
 
-### Initial hyperparameter functions
-* BE CAREFUL TO these initialisation funciton: **nv_init.m, Omega_init.m, SE_init.m, and nu (in TPR and MV-TPR)**. These functions are used to initialise parameters. These functions play an important role in the final results, if you would like to obtain considerable results, **PLEASE USE YOUR OWN FUNCTIONS** according to **YOUR OWN EXPERT OPINIONS using training data**.
+* `gp_solve_gpml.m`
+* `tp_solve_gpml.m`
+* `mvgp_solve_gpml.m`
+* `mvtp_solve_gpml.m`
 
-### Utility functions
-* MultiGamma.m and vec2mat_diag.m are two small functions, which are used in the mvgp_solve_gpml.m and mvtp_solve_gpml.m.
-* Omega(in MV-GPR and MV-TPR), and hyperparameters in the specific kernel. 
+### init
 
-Becasue the initial hyperparameters play an important role in the performance of regression. 
-If possible, you should write your own initialisation function.  
+These functions are used to generate initial hyperparameters for the corresponding covariance function.
 
-**Do not forget to replace SE_init.m by the corresponding kernel initialation function if you write a new for yourself.**
+BE CAREFUL TO these initialisation function: 
 
-### Cov and utility function
-This tookkit is based on GPML Matlab Code http://www.gaussianprocess.org/gpml/code/matlab/doc/, version 3.6.
+**`Omega_init.m`, `SE_init.m`, and `nv_init.m` (in TPR and MV-TPR)**. 
 
-covSEiso.m, covSEard.m and sq_dist.m are collected from GPML Matlab Code. 
+These functions play an important role in the final results, if you would like to obtain considerable results, **PLEASE USE YOUR OWN FUNCTIONS** according to **YOUR OWN EXPERT OPINIONS using training data**.
 
-covSEiso and covSEard are used as default covariance function. More covariance functions can be selected in the GPML Code toolbox. 
+**Do not forget to replace `SE_init.m` by the corresponding kernel initialisation function if you write a new for yourself.**
 
+### util and cov
 
-## Log
-### ----2018/01/19-----
+`covSEiso.m`, `covSEard.m` and `sq_dist.m` are collected from GPML MATLAB Code. 
 
-File added: SimulatedExample.m
+`covSEiso.m` and `covSEard.m` are used as default covariance function. More covariance functions can be selected in the GPML Code toolbox. 
 
-Add a simple example for multi-output prediction (MV-GP and MV-TP) compared with independent prediction using GP and TP
+`MultiGamma.m` and `vec2mat_diag.m` are two small functions, which are used in the `mvgp_solve_gpml.m` and `mvtp_solve_gpml.m`.
 
-Update optimset setting for Matlab 2017 and later in gptp_general.m 
+### sample
 
-### ----2017/12/04-----
+`gptp_sample.m ` is to generate a sample from GP or TP with specified row and column covariance and zero mean function.
 
-Add gptp_sample.m file
-This file is to generate a sample from GP or TP with specificed row and column covariance and zero mean function.
+`mv_gptp_sample.m` is to generate a sample from MV-GP or MV-TP with specified row and column covariance and zero mean function.
 
-Add mv_gptp_sample.m file
-This file is to generate a sample from MV-GP or MV-TP with specificed row and column covariance and zero mean function.
+### example
 
-## Remarks
+`SimulatedExample.m` is a simple example for multi-output prediction (MV-GP and MV-TP) compared with independent prediction using GP and TP .
+
+`SimulatedParameter.m` is a simple example for multi-output prediction (MV-GP and MV-TP) parameter estimation .
+
+You need to modify `Omega_init.m`, `SE_init.m`, and `nv_init.m` to obtain the best results for parameter simulation and prediction.
+
+## Note
+
 This code is proof-of-concept, not optimized for speed.
 
 ## Reference 
