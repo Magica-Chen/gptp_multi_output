@@ -68,5 +68,7 @@ This code is proof-of-concept, not optimized for speed.
 
 [1] Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." Neurocomputing 275 (2018): 1702-1710.
 
-[2] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student $-t $ Process Regression for Multi-output Prediction." Neural Computing and Applications 32.8 (2020): 3005-3028..
+[2] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student $-t $ Process Regression for Multi-output Prediction." Neural Computing and Applications 32.8 (2020): 3005-3028.
+
+[3] Chen, Zexun, Jun Fan, and Kuo Wang. "Remarks on multivariate Gaussian Process." arXiv preprint arXiv:2010.09830 (2020).
 
