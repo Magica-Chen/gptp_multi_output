@@ -147,13 +147,13 @@ if nargin == 7
     switch option
         case 'GP'
             % only perform GPR
-            GPpredictor = gp_part(xtr, ytr, xte,k,dk, para_init, ...
+            GPpredictor = gp_part(xtr, ytr, xte, k, dk, para_init, ...
                 n_parameter,optim_new, sn);
             varargout = {GPpredictor};
             
         case 'TP'
             % only perform TPR
-            TPpredictor = tp_part(xtr, ytr, xte, k,dk,para_init, ...
+            TPpredictor = tp_part(xtr, ytr, xte, k, dk,para_init, ...
                 n_parameter,optim_new, sn);
             varargout = {TPpredictor};
             
@@ -167,7 +167,7 @@ if nargin == 7
             
         case 'GPVS'
             if d_target > 1
-                mvGPpredictor = gp_part(xtr, ytr, xte, k,dk,para_init, ...
+                mvGPpredictor = gp_part(xtr, ytr, xte, k, dk,para_init, ...
                     n_parameter,optim_new, sn);
                 if nargout == 1
                     varargout = {mvGPpredictor};
@@ -176,7 +176,7 @@ if nargin == 7
                     
                     for i = 1:d_target
                         indGPpredictor{i} = gp_part(xtr, ytr(:,i),xte,...
-                            d_input,1,k,dk,para_init, n_parameter,...
+                            k,dk,para_init, n_parameter,...
                             optim_new, sn);
                     end
                     varargout = {indGPpredictor, mvGPpredictor};
@@ -187,7 +187,7 @@ if nargin == 7
             
         case 'TPVS'
             if d_target > 1
-                mvTPpredictor = tp_part(xtr, ytr, xte,k,dk,para_init,...
+                mvTPpredictor = tp_part(xtr, ytr, xte, k, dk,para_init,...
                     n_parameter,optim_new, sn);
                 if nargout == 1
                     varargout = {mvTPpredictor};
@@ -196,7 +196,7 @@ if nargin == 7
                     
                     for i = 1:d_target
                         indTPpredictor{i} = tp_part(xtr,ytr(:,i),xte,...
-                            n_input,d_input,1,k,dk,para_init,n_parameter,...
+                            k,dk,para_init,n_parameter,...
                             optim_new, sn);
                     end
                     varargout = {indTPpredictor, mvTPpredictor};
@@ -312,7 +312,7 @@ end
 end
 
 %% implement TPR/MV-TPR only
-function TPpredictor = tp_part(xtr, ytr, xte, k,dk,para_init,...
+function TPpredictor = tp_part(xtr, ytr, xte, k, dk, para_init,...
     n_parameter,opts_new,sn)
 %% Global part
 % [n_input, d_input] = size(xtr); % length and dimension of training input
