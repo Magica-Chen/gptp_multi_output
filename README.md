@@ -4,6 +4,8 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Magica-Chen/gptp_multi_output?style=plastic)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Magica-Chen/gptp_multi_output?style=plastic)
 ![GPML](https://img.shields.io/badge/Matlab-GPML--v3.6-orange)
+![GitHub Repo stars](https://img.shields.io/github/stars/Magica-Chen/gptp_multi_output?style=social)
+![Twitter](https://img.shields.io/twitter/follow/MagicaChen?style=social)
 
 This toolkit is used to implement multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR). 
 
