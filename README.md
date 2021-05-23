@@ -4,6 +4,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Magica-Chen/gptp_multi_output?style=plastic)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Magica-Chen/gptp_multi_output?style=plastic)
 ![GPML](https://img.shields.io/badge/Matlab-GPML--v3.6-orange)
+[![DOI](https://zenodo.org/badge/92859352.svg)](https://zenodo.org/badge/latestdoi/92859352)
 ![GitHub Repo stars](https://img.shields.io/github/stars/Magica-Chen/gptp_multi_output?style=social)
 ![Twitter](https://img.shields.io/twitter/follow/MagicaChen?style=social)
 
