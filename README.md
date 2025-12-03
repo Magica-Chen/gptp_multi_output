@@ -8,70 +8,54 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/Magica-Chen/gptp_multi_output?style=social)
 ![Twitter](https://img.shields.io/twitter/follow/MagicaChen?style=social)
 
-This toolkit is used to implement multivariate Gaussian process regression (MV-GPR) and multivariate Student-t process regression (MV-TPR). 
-
-## Setup
-
-This toolkit is based on GPML MATLAB Code http://www.gaussianprocess.org/gpml/code/matlab/doc/, version 3.6.
-
-You have to run `startup.m` in GPML 3.6 first, and then run `add_path.m` in this toolkit.
-
-## Code Structure
-
-The main function is` gptp_general.m`, which relies on four functions in `solver` folder.
-
-### solver
-
-These four functions are used to solve GPR, TPR, MV-GPR and MV-TPR, respectively.
-
-* `gp_solve_gpml.m`
-* `tp_solve_gpml.m`
-* `mvgp_solve_gpml.m`
-* `mvtp_solve_gpml.m`
-
-### init
-
-These functions are used to generate initial hyperparameters for the corresponding covariance function.
-
-BE CAREFUL TO these initialisation function: 
-
-**`Omega_init.m`, `SE_init.m`, and `nv_init.m` (in TPR and MV-TPR)**. 
-
-These functions play an important role in the final results, if you would like to obtain considerable results, **PLEASE USE YOUR OWN FUNCTIONS** according to **YOUR OWN EXPERT OPINIONS using training data**.
-
-**Do not forget to replace `SE_init.m` by the corresponding kernel initialisation function if you write a new for yourself.**
-
-### util and cov
-
-`covSEiso.m`, `covSEard.m` and `sq_dist.m` are collected from GPML MATLAB Code. 
-
-`covSEiso.m` and `covSEard.m` are used as default covariance function. More covariance functions can be selected in the GPML Code toolbox. 
-
-`MultiGamma.m` and `vec2mat_diag.m` are two small functions, which are used in the `mvgp_solve_gpml.m` and `mvtp_solve_gpml.m`.
-
-### sample
-
-`gptp_sample.m ` is to generate a sample from GP or TP with specified row and column covariance and zero mean function.
-
-`mv_gptp_sample.m` is to generate a sample from MV-GP or MV-TP with specified row and column covariance and zero mean function.
-
-### example
-
-`SimulatedExample.m` is a simple example for multi-output prediction (MV-GP and MV-TP) compared with independent prediction using GP and TP .
-
-`SimulatedParameter.m` is a simple example for multi-output prediction (MV-GP and MV-TP) parameter estimation .
-
-You need to modify `Omega_init.m`, `SE_init.m`, and `nv_init.m` to obtain the best results for parameter simulation and prediction.
-
-## Note
+MATLAB toolbox for Gaussian Process (GP), Student-t Process (TP), multivariate GP (MV-GP) and multivariate TP (MV-TP) regression built on top of GPML 3.6.
 
 This code is proof-of-concept, not optimized for speed.
 
-## Reference 
+## Requirements
+- MATLAB R2016b or maybe newer
+- GPML MATLAB Code v3.6 (run `startup.m` from GPML before using this repo)
+- Add this repo to the MATLAB path via `add_path.m`
 
-[1] Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." Neurocomputing 275 (2018): 1702-1710.
+## Quick start
+1. Clone GPML 3.6 and run its `startup.m`.
+2. Run `add_path.m` in this repo.
+3. Call `gptp_general` with your data:
+   ```matlab
+   % GP regression with defaults (SE kernel, sn = 0.1)
+   GP = gptp_general(xtr, ytr, xte);
 
-[2] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student $-t $ Process Regression for Multi-output Prediction." Neural Computing and Applications 32.8 (2020): 3005-3028.
+   % MV-TP regression with custom kernel and inits
+   covfunc = @covSEard;
+   para_init = @SE_init;
+   sn = 0.05;
+   mvTP = gptp_general(xtr, ytr, xte, sn, covfunc, para_init, "TPVS");
+   ```
 
-[3] Chen, Zexun, Jun Fan, and Kuo Wang. "Remarks on multivariate Gaussian Process." arXiv preprint arXiv:2010.09830 (2020).
+## Key entry points
+- `gptp_general.m` — high-level driver for GP, TP, MV-GP, MV-TP and their independent variants.
+- `solver/` — model-specific solvers that wrap GPML primitives:
+  - `gp_solve_gpml.m`, `tp_solve_gpml.m`, `mvgp_solve_gpml.m`, `mvtp_solve_gpml.m`
+- `init/` — hyperparameter initialisation helpers. Adapt these to your data for best results:
+  - `SE_init.m` (kernel hyperparameters)
+  - `Omega_init.m` (output correlation) — provides a starting point only; production use should supply a task-specific initialiser.
+  - `nv_init.m` (degrees of freedom for TP/MV-TP)
+- `util/` and `cov/` — supporting math utilities and default SE covariance functions from GPML.
+- `sample/` and `example/` — small scripts for sampling and simulation demos.
+
+## Notes on initialisation
+Performance is sensitive to initial hyperparameters. The default `SE_init.m`, `Omega_init.m`, and `nv_init.m` are generic and meant as placeholders. For serious use, design problem-specific initialisation based on your training data and kernel choice (e.g., scale parameters, sensible output correlations, or informative priors on degrees of freedom).
+
+
+## Repository layout
+- `gptp_general.m` — main API
+- `solver/` — optimisation and prediction routines
+- `init/` — hyperparameter initialisers
+- `util/`, `cov/` — utilities and covariance functions
+- `sample/`, `example/` — sampling and usage examples
+
+## References
+1. Chen, Zexun, and Bo Wang. "How priors of initial hyperparameters affect Gaussian process regression models." *Neurocomputing* 275 (2018): 1702–1710.
+2. Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate Gaussian and Student-t Process Regression for Multi-output Prediction." *Neural Computing and Applications* 32.8 (2020): 3005–3028.
+3. Chen, Zexun, Jun Fan, and Kuo Wang. "Remarks on multivariate Gaussian Process." *Neural Computing and Applications* (published version of arXiv:2010.09830), 2023.
 

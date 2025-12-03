@@ -59,13 +59,13 @@ function [varargout] = gptp_general(xtr,ytr,xte,sn,covfunc,para_init,option)
 %           gptp_general(xtr,ytr,xte,sn,cov,para_init,"All");
 %
 % Copyright: Magica Chen 2018/10/28
-%     Modified on 2019/07/16
+%     Modified on 2025/12/03
 %     email: sxtpy2010@gmail.com
 %
 % Reference :
 %    [1] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate
 %        Gaussian and Student $-t $ Process Regression for Multi-output
-%        Prediction." arXiv preprint arXiv:1703.04455 (2017).
+%        Prediction." Neural Computing and Applications 32.8 (2020): 3005-3028.
 
 %% Variables check
 if nargin < 3 || nargin > 7

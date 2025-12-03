@@ -28,7 +28,7 @@ function [varargout] = MultiGamma(lambda,n,option)
 %   definition of multivarivate gamma function
 %
 % Copyright: Maigca Chen, 2016/05/15
-% ?         Last modified 2018/01/19
+% Last modified 2025/12/03
 % Email: sxtpy2010@gmail.com            
 
 if nargin < 2 || nargin >3
@@ -89,7 +89,7 @@ if nargin == 3
                 DerLogGammaY = reshape(DerLogGammaY,s);
                 varargout = {DerLogGammaY};
             case 'All'
-                GammaY = pi^(n*(n-1)/4)*prod(gammaln(lambda),1);
+                GammaY = pi^(n*(n-1)/4)*prod(gamma(lambda),1);
                 GammaY = reshape(GammaY,s);
                 
                 LogGammaY = n*(n-1)/4*log(pi)+sum(gammaln(lambda),1);

@@ -49,12 +49,12 @@ function [varargout] = mvtp_solve_gpml(w,x,y,k,xt)
 %  License.txt, included with the software, for details.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  2017/05/30 Modified by Magica Chen, sxtpy2010@gmail.com
+%  2025/12/03 Modified by Magica Chen, sxtpy2010@gmail.com
 %
 % Reference :
 %    [3] Chen, Zexun, Bo Wang, and Alexander N. Gorban. "Multivariate
 %        Gaussian and Student $-t $ Process Regression for Multi-output
-%        Prediction." arXiv preprint arXiv:1703.04455 (2017).
+%        Prediction." Neural Computing and Applications 32.8 (2020): 3005-3028.
 %---------------------------------------------------------------------
 %% Extract values, some values should do log transformation
 n      = size(x,1);   d = size(y,2);
@@ -64,23 +64,23 @@ para_nu = exp(w(1));
 % 2nd parameter is sigma2
 para_sigma2 = exp(w(2));
 
-% Last (d-1)*d/2 parameters is the parameters in non-diagonal Omega
-para_non_diagonal_Omega = w(end - (d-1)*d/2 +1:end);
+% Extract Omega parameters (all stored in log-space)
+num_non_diag = (d-1)*d/2;
+omega_log = w(end - num_non_diag - d + 1:end);
+para_Omega = exp(omega_log);
 
-% After last (d-1)*d/2 parameters, there are d parameters for diagonal Omega
-para_diagonal_Omega = exp(w(end -(d-1)*d/2-d + 1: end - (d-1)*d/2));
-
-% parameter Omega contains diagonal and non-diagonal
-para_Omega = [para_diagonal_Omega(:);para_non_diagonal_Omega(:)];
+% Split Omega into diagonal and off-diagonal parts
+para_diagonal_Omega = para_Omega(1:d);
+para_non_diagonal_Omega = para_Omega(d+1:end);
 
 % The remaining parameters are allocated to kernel
-para_kernel = exp(w(3 : end -(d-1)*d/2-d));
+para_kernel = exp(w(3 : end - num_non_diag - d));
 
 % Count the number of parameter in Omega and kernel
 num_Omega = numel(para_Omega); num_kernel = numel(para_kernel);
 
-% re-construct the correlation matrix Omega(d*d) using the parameter in w
-[L_Omega,Omega] =  vec2mat_diag(w(end-num_Omega+1:end),d);
+% Re-construct the correlation matrix Omega(d*d) using the exponentiated parameters
+[L_Omega,Omega] =  vec2mat_diag(para_Omega,d);
 %% Compute kernel and Cholesky
 % Evaluate covariance matrix
 % r = abs(bsxfun(@minus,x(:),x(:)'));
@@ -210,11 +210,7 @@ else
         for i = 1:d
             for j = 1:i
                 E = zeros(d,d);
-                if i==j
-                    E(i,j) = para_diagonal_Omega(i);
-                else
-                    E(i,j) = 1;
-                end
+                E(i,j) = 1;
                 %-----------------------------------------------------------
                 dOmega(i,j) = -(tau + d)*trace(invU*alpha_Omega'*(E*L_Omega'+L_Omega*E)*...
                     alpha_Omega) + n/2*trace(invOmega*(E*L_Omega'+L_Omega*E));
